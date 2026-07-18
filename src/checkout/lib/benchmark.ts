@@ -12,35 +12,43 @@ export interface BenchRow {
 }
 
 export const MERCADO_LIVRE_TAPS = 4 // 2ª compra, sem scroll (referência)
+export const FAST_CHECKOUT_TAPS = 2 // link direto no pagamento + PIX + pagar
 
 export const benchmark: BenchRow[] = [
   {
+    key: 'fast-checkout',
+    label: 'Fast checkout',
+    taps: FAST_CHECKOUT_TAPS,
+    typing: false,
+    note: 'Link abre no pagamento. PIX → revisar → pagar.',
+  },
+  {
     key: 'complete-1',
     label: 'Recorrente + logado',
-    taps: 3,
+    taps: 4,
     typing: false,
-    note: 'Sacola → Entrega → Pagar. Tudo pré-selecionado.',
+    note: 'Sacola → entrega recomendada → PIX → pagar.',
   },
   {
     key: 'complete-0',
     label: 'Recorrente + login',
-    taps: 4,
+    taps: 5,
     typing: true,
     note: '+ 1 toque para enviar o código (dados já salvos).',
   },
   {
     key: 'simple-1',
     label: '1ª compra + logado',
-    taps: 4,
+    taps: 5,
     typing: true,
-    note: 'Digita endereço; frete e PIX em 1 toque cada.',
+    note: 'Digita endereço; frete, PIX e pagar em 1 toque cada.',
   },
   {
     key: 'simple-0',
     label: '1ª compra completa',
-    taps: 5,
+    taps: 6,
     typing: true,
-    note: 'Identificação + endereço + frete + PIX.',
+    note: 'Identificação + endereço + frete + PIX + pagar.',
   },
 ]
 

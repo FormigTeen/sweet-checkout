@@ -1,7 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from './Icons'
 import { tick } from '../lib/feedback'
-import { MERCADO_LIVRE_TAPS, benchKey, benchmark } from '../lib/benchmark'
+import {
+  FAST_CHECKOUT_TAPS,
+  MERCADO_LIVRE_TAPS,
+  benchKey,
+  benchmark,
+} from '../lib/benchmark'
 import type { Mode } from '../types'
 
 export function BenchmarkDrawer({
@@ -67,6 +72,7 @@ export function BenchmarkDrawer({
               {beatsMl
                 ? `Igualou ou superou o Mercado Livre (${MERCADO_LIVRE_TAPS} toques na 2ª compra).`
                 : `Mercado Livre finaliza em ${MERCADO_LIVRE_TAPS} toques na 2ª compra.`}
+              {' '}Fast checkout fica em {FAST_CHECKOUT_TAPS} toques.
             </p>
 
             <table className="bench-table">
@@ -78,7 +84,12 @@ export function BenchmarkDrawer({
               </thead>
               <tbody>
                 {benchmark.map((r) => (
-                  <tr key={r.key} className={r.key === currentKey ? 'me' : ''}>
+                  <tr
+                    key={r.key}
+                    className={`${r.key === currentKey ? 'me' : ''} ${
+                      r.key === 'fast-checkout' ? 'fast' : ''
+                    }`}
+                  >
                     <td>
                       <b>{r.label}</b>
                       <span className="bench-note">{r.note}</span>

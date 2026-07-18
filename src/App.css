@@ -1405,6 +1405,13 @@
 .bench-table tr.me .bench-taps {
   color: #5fe08d;
 }
+.bench-table tr.fast td {
+  background: rgba(216, 163, 58, 0.1);
+}
+.bench-table tr.fast td b,
+.bench-table tr.fast .bench-taps {
+  color: #ffe08a;
+}
 .bench-table tr.ml td b {
   color: #ffe08a;
 }
