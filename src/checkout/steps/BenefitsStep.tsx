@@ -22,6 +22,7 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
   )
 
   const hasCashbackBalance = cashbackBalance > 0
+  const hasGiftCards = giftCards.length > 0
   const hasApplied = selectedGiftCardIds.length > 0 || cashbackToUse > 0
   const appliedValue = totals.giftCardDiscount + totals.cashbackDiscount
 
@@ -55,7 +56,13 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
             <Coin width={22} height={22} />
           </span>
           <span>
-            <b>{hasApplied ? `${brl(appliedValue)} aplicado` : 'Você tem saldo para usar'}</b>
+            <b>
+              {hasApplied
+                ? `${brl(appliedValue)} aplicado`
+                : hasGiftCards
+                  ? 'Você tem benefícios para usar'
+                  : 'Você tem cashback disponível'}
+            </b>
             <small>
               {hasApplied
                 ? 'O total do pedido já foi atualizado.'
@@ -64,20 +71,22 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
           </span>
         </motion.div>
 
-        <div className="pay-list">
-          {giftCards.map((gift) => (
-            <Selectable
-              key={gift.id}
-              icon={<Card width={22} height={22} />}
-              title={gift.label}
-              subtitle={`${gift.code} · saldo ${brl(gift.balance)}`}
-              right={<span className="free">-{brl(gift.balance)}</span>}
-              selected={selectedGiftCardIds.includes(gift.id)}
-              indicator="check"
-              onSelect={() => toggleGift(gift.id)}
-            />
-          ))}
-        </div>
+        {hasGiftCards && (
+          <div className="pay-list">
+            {giftCards.map((gift) => (
+              <Selectable
+                key={gift.id}
+                icon={<Card width={22} height={22} />}
+                title={gift.label}
+                subtitle={`${gift.code} · saldo ${brl(gift.balance)}`}
+                right={<span className="free">-{brl(gift.balance)}</span>}
+                selected={selectedGiftCardIds.includes(gift.id)}
+                indicator="check"
+                onSelect={() => toggleGift(gift.id)}
+              />
+            ))}
+          </div>
+        )}
 
         {hasCashbackBalance && (
           <section className="cashback-use-card">

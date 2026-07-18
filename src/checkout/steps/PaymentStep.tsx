@@ -1,28 +1,272 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { useEnterAdvance } from '../useEnterAdvance'
 import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
-import { Card, Pix, Plus } from '../components/Icons'
+import { ArrowRight, Card, Pix, Plus, Return } from '../components/Icons'
 import { brl } from '../lib/format'
 import { select } from '../lib/feedback'
 
 type Phase = 'method' | 'cards' | 'newcard' | 'savedcvv' | 'installments'
+type NewCardPhase = 'number' | 'name' | 'expiry' | 'cvc' | 'done'
 
-function NewCardForm() {
+interface NewCardState {
+  number: string
+  name: string
+  expiry: string
+  cvc: string
+}
+
+function cardBrand(number: string) {
+  const digits = number.replace(/\D/g, '')
+  if (digits.startsWith('4')) return 'Visa'
+  if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard'
+  if (/^3[47]/.test(digits)) return 'Amex'
+  if (/^(4011|4312|4389|4514|4576|5041|5067|509|6277|6362|6363)/.test(digits)) return 'Elo'
+  return 'Cartão'
+}
+
+function formatCardNumber(v: string) {
+  return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
+}
+
+function formatExpiry(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 4)
+  if (d.length <= 2) return d
+  return `${d.slice(0, 2)}/${d.slice(2)}`
+}
+
+function isNewCardReady(card: NewCardState) {
   return (
-    <div className="pay-list">
-      <input
-        className="field-input"
-        placeholder="Número do cartão"
-        inputMode="numeric"
-        autoFocus
-      />
-      <input className="field-input" placeholder="Nome impresso no cartão" />
-      <div className="row-2">
-        <input className="field-input" placeholder="Validade" inputMode="numeric" />
-        <input className="field-input" placeholder="CVV" inputMode="numeric" />
+    card.number.replace(/\D/g, '').length === 16 &&
+    card.name.trim().length > 4 &&
+    card.expiry.length === 5 &&
+    card.cvc.length >= 3
+  )
+}
+
+function CreditCardPreview({
+  card,
+  focus,
+  brand,
+}: {
+  card: NewCardState
+  focus: NewCardPhase
+  brand?: string
+}) {
+  const isBack = focus === 'cvc'
+  return (
+    <motion.div
+      className={`credit-preview ${isBack ? 'is-back' : ''}`}
+      layout
+      initial={{ opacity: 0, y: 14, rotateX: -8 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+    >
+      <div className="credit-face credit-front">
+        <div className="credit-top">
+          <span className="credit-chip" />
+          <span className="credit-brand">{brand ?? cardBrand(card.number)}</span>
+        </div>
+        <motion.div
+          className={`credit-number ${focus === 'number' ? 'active' : ''}`}
+          layout
+        >
+          {card.number || '•••• •••• •••• ••••'}
+        </motion.div>
+        <div className="credit-bottom">
+          <motion.span className={focus === 'name' ? 'active' : ''} layout>
+            {card.name || 'NOME IMPRESSO'}
+          </motion.span>
+          <motion.span className={focus === 'expiry' ? 'active' : ''} layout>
+            {card.expiry || 'MM/AA'}
+          </motion.span>
+        </div>
       </div>
+      <div className="credit-face credit-back">
+        <div className="credit-stripe" />
+        <div className="credit-cvc-row">
+          <span>CVV</span>
+          <b>{card.cvc || '•••'}</b>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function NewCardForm({
+  card,
+  setCard,
+  phase,
+  setPhase,
+}: {
+  card: NewCardState
+  setCard: (card: NewCardState) => void
+  phase: NewCardPhase
+  setPhase: (phase: NewCardPhase) => void
+}) {
+  const numberRef = useRef<HTMLInputElement>(null)
+  const nameRef = useRef<HTMLInputElement>(null)
+  const expiryRef = useRef<HTMLInputElement>(null)
+  const cvcRef = useRef<HTMLInputElement>(null)
+
+  const numberOk = card.number.replace(/\D/g, '').length === 16
+  const nameOk = card.name.trim().length > 4
+  const expiryOk = card.expiry.length === 5
+  const cvcOk = card.cvc.length >= 3
+
+  useLayoutEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const input =
+        phase === 'number'
+          ? numberRef.current
+          : phase === 'name'
+            ? nameRef.current
+            : phase === 'expiry'
+              ? expiryRef.current
+              : phase === 'cvc'
+                ? cvcRef.current
+                : null
+      input?.focus()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [phase])
+
+  function patch(patchCard: Partial<NewCardState>) {
+    setCard({ ...card, ...patchCard })
+  }
+
+  function confirm(next: NewCardPhase, ready: boolean) {
+    if (!ready) return
+    select()
+    setPhase(next)
+  }
+
+  return (
+    <div className="new-card-flow">
+      <CreditCardPreview card={card} focus={phase} />
+
+      <AnimatePresence mode="wait">
+        {phase === 'number' && (
+          <motion.div key="number" className="field" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+            <span className="field-label">Número do cartão</span>
+            <div className="num-row">
+              <input
+                ref={numberRef}
+                className="field-input"
+                autoFocus
+                inputMode="numeric"
+                autoComplete="cc-number"
+                placeholder="0000 0000 0000 0000"
+                value={card.number}
+                onChange={(e) => patch({ number: formatCardNumber(e.target.value) })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    confirm('name', numberOk)
+                  }
+                }}
+              />
+              <button className="num-confirm" aria-label="Confirmar número do cartão" disabled={!numberOk} onPointerDown={(e) => e.preventDefault()} onClick={() => confirm('name', numberOk)}>
+                <ArrowRight width={22} height={22} />
+              </button>
+            </div>
+            <span className="enter-hint">
+              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
+            </span>
+          </motion.div>
+        )}
+
+        {phase === 'name' && (
+          <motion.div key="name" className="field" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+            <span className="field-label">Nome impresso no cartão</span>
+            <div className="num-row">
+              <input
+                ref={nameRef}
+                className="field-input"
+                autoFocus
+                autoComplete="cc-name"
+                placeholder="Nome como está no cartão"
+                value={card.name}
+                onChange={(e) => patch({ name: e.target.value.toUpperCase() })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    confirm('expiry', nameOk)
+                  }
+                }}
+              />
+              <button className="num-confirm" aria-label="Confirmar nome do cartão" disabled={!nameOk} onPointerDown={(e) => e.preventDefault()} onClick={() => confirm('expiry', nameOk)}>
+                <ArrowRight width={22} height={22} />
+              </button>
+            </div>
+            <span className="enter-hint">
+              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
+            </span>
+          </motion.div>
+        )}
+
+        {phase === 'expiry' && (
+          <motion.div key="expiry" className="field" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+            <span className="field-label">Validade</span>
+            <div className="num-row">
+              <input
+                ref={expiryRef}
+                className="field-input"
+                autoFocus
+                inputMode="numeric"
+                autoComplete="cc-exp"
+                placeholder="MM/AA"
+                value={card.expiry}
+                onChange={(e) => patch({ expiry: formatExpiry(e.target.value) })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    confirm('cvc', expiryOk)
+                  }
+                }}
+              />
+              <button className="num-confirm" aria-label="Confirmar validade do cartão" disabled={!expiryOk} onPointerDown={(e) => e.preventDefault()} onClick={() => confirm('cvc', expiryOk)}>
+                <ArrowRight width={22} height={22} />
+              </button>
+            </div>
+            <span className="enter-hint">
+              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
+            </span>
+          </motion.div>
+        )}
+
+        {phase === 'cvc' && (
+          <motion.div key="cvc" className="field" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+            <span className="field-label">Código de segurança</span>
+            <div className="num-row">
+              <input
+                ref={cvcRef}
+                className="field-input"
+                autoFocus
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                placeholder="000"
+                value={card.cvc}
+                onChange={(e) => patch({ cvc: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    confirm('done', cvcOk)
+                  }
+                }}
+              />
+              <button className="num-confirm" aria-label="Confirmar código do cartão" disabled={!cvcOk} onPointerDown={(e) => e.preventDefault()} onClick={() => confirm('done', cvcOk)}>
+                <ArrowRight width={22} height={22} />
+              </button>
+            </div>
+            <span className="enter-hint">
+              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -45,6 +289,13 @@ export function PaymentStep({
   // seleção: 'pix' | 'lecard' | 'new' | `saved:<id>`
   const [sel, setSel] = useState<string>('pix')
   const [cvv, setCvv] = useState('')
+  const [newCard, setNewCard] = useState<NewCardState>({
+    number: '',
+    name: '',
+    expiry: '',
+    cvc: '',
+  })
+  const [newCardPhase, setNewCardPhase] = useState<NewCardPhase>('number')
   const [selectedInstallments, setSelectedInstallments] = useState(1)
   const isPix = sel === 'pix'
   const savedCard = sel.startsWith('saved:')
@@ -89,14 +340,34 @@ export function PaymentStep({
         setPhase(sel === 'new' ? 'newcard' : sel.startsWith('saved:') ? 'savedcvv' : 'method')
         return true
       }
-      if (phase === 'newcard' || phase === 'savedcvv' || phase === 'cards') {
+      if (phase === 'newcard') {
+        if (newCardPhase === 'cvc') {
+          setNewCardPhase('expiry')
+          return true
+        }
+        if (newCardPhase === 'expiry') {
+          setNewCardPhase('name')
+          return true
+        }
+        if (newCardPhase === 'name') {
+          setNewCardPhase('number')
+          return true
+        }
+        if (newCardPhase === 'done') {
+          setNewCardPhase('cvc')
+          return true
+        }
+        setPhase('method')
+        return true
+      }
+      if (phase === 'savedcvv' || phase === 'cards') {
         setPhase('method')
         return true
       }
       return false
     })
     return () => registerBack(null)
-  }, [phase, sel, registerBack])
+  }, [phase, sel, newCardPhase, registerBack])
 
   // Enter avança conforme a fase
   useEnterAdvance(
@@ -104,6 +375,7 @@ export function PaymentStep({
     () => {
       if (phase === 'method') primary()
       else if (phase === 'newcard') {
+        if (!isNewCardReady(newCard)) return
         select()
         setPhase('installments')
       } else if (phase === 'savedcvv' && cvvReady) {
@@ -119,45 +391,61 @@ export function PaymentStep({
 
   // ---------- Codigo de seguranca do cartao salvo ----------
   if (phase === 'savedcvv') {
+    const savedPreview: NewCardState = {
+      number: savedCard ? `•••• •••• •••• ${savedCard.last4}` : '•••• •••• •••• ••••',
+      name: 'CARTÃO SALVO',
+      expiry: '••/••',
+      cvc: cvv,
+    }
     return (
       <>
         <div className="step-scroll">
           <h1 className="step-title">Código de segurança</h1>
-          <p className="step-sub">Digite o CVV do cartão para continuar.</p>
+          <p className="step-sub">Digite o CVV que fica no verso do cartão.</p>
 
-          <div className="saved-card-box">
-            <span className="sel-icon">
-              <Card width={22} height={22} />
-            </span>
-            <span className="saved-card-main">
-              <b>{savedCard ? `${savedCard.brand} •••• ${savedCard.last4}` : 'Cartão salvo'}</b>
-              <span>O código fica no verso do cartão.</span>
+          <div className="new-card-flow">
+            <CreditCardPreview
+              card={savedPreview}
+              focus="cvc"
+              brand={savedCard?.brand ?? 'Cartão'}
+            />
+            <span className="field-label">CVV</span>
+            <div className="num-row">
+              <input
+                className="field-input big cvv-input"
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                maxLength={4}
+                autoFocus
+                placeholder="000"
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && cvvReady) {
+                    e.preventDefault()
+                    select()
+                    setPhase('installments')
+                  }
+                }}
+              />
+              <button
+                className="num-confirm"
+                aria-label="Confirmar código de segurança"
+                disabled={!cvvReady}
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  select()
+                  setPhase('installments')
+                }}
+              >
+                <ArrowRight width={22} height={22} />
+              </button>
+            </div>
+            <span className="enter-hint">
+              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
             </span>
           </div>
-
-          <label className="field">
-            <span className="field-label">CVV</span>
-            <input
-              className="field-input big cvv-input"
-              inputMode="numeric"
-              autoComplete="cc-csc"
-              maxLength={4}
-              autoFocus
-              placeholder="000"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-            />
-          </label>
         </div>
-        <BottomBar
-          label="Escolher parcelas"
-          variant="green"
-          disabled={!cvvReady}
-          onNext={() => {
-            select()
-            setPhase('installments')
-          }}
-        />
       </>
     )
   }
@@ -168,17 +456,24 @@ export function PaymentStep({
       <>
         <div className="step-scroll">
           <h1 className="step-title">Novo cartão</h1>
-          <p className="step-sub">Preencha os dados do cartão de crédito.</p>
-          <NewCardForm />
+          <p className="step-sub">Preencha um dado por vez para continuar.</p>
+          <NewCardForm
+            card={newCard}
+            setCard={setNewCard}
+            phase={newCardPhase}
+            setPhase={setNewCardPhase}
+          />
         </div>
-        <BottomBar
-          label="Escolher parcelas"
-          variant="green"
-          onNext={() => {
-            select()
-            setPhase('installments')
-          }}
-        />
+        {isNewCardReady(newCard) && (
+          <BottomBar
+            label="Escolher parcelas"
+            variant="green"
+            onNext={() => {
+              select()
+              setPhase('installments')
+            }}
+          />
+        )}
       </>
     )
   }

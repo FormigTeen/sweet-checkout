@@ -25,7 +25,7 @@ const DEFAULT_SIM: SimConfig = {
   cards: 0,
   addresses: 0,
   profileComplete: true,
-  benefitsEnabled: false,
+  giftCardsEnabled: false,
   hasCashbackBalance: true,
   cashbackBalance: DEFAULT_CASHBACK_BALANCE,
 }
@@ -34,13 +34,13 @@ function loadSimConfig(): SimConfig {
   try {
     const raw = localStorage.getItem(SIM_STORAGE_KEY)
     if (!raw) return DEFAULT_SIM
-    const parsed = JSON.parse(raw) as Partial<SimConfig>
+    const parsed = JSON.parse(raw) as Partial<SimConfig> & { benefitsEnabled?: boolean }
     return {
       products: clamp(parsed.products ?? DEFAULT_SIM.products, 1, 4),
       cards: clamp(parsed.cards ?? DEFAULT_SIM.cards, 0, 7),
       addresses: clamp(parsed.addresses ?? DEFAULT_SIM.addresses, 0, 7),
       profileComplete: parsed.profileComplete ?? DEFAULT_SIM.profileComplete,
-      benefitsEnabled: parsed.benefitsEnabled ?? DEFAULT_SIM.benefitsEnabled,
+      giftCardsEnabled: parsed.giftCardsEnabled ?? parsed.benefitsEnabled ?? DEFAULT_SIM.giftCardsEnabled,
       hasCashbackBalance: parsed.hasCashbackBalance ?? DEFAULT_SIM.hasCashbackBalance,
       cashbackBalance: DEFAULT_CASHBACK_BALANCE,
     }
@@ -63,8 +63,9 @@ function saveSimConfig(sim: SimConfig) {
 
 export default function App() {
   const [sim, setSim] = useState<SimConfig>(loadSimConfig)
+  const benefitsStepEnabled = sim.giftCardsEnabled || sim.hasCashbackBalance
   const { params, sequence, index, next, back, go, setConfig } =
-    useCheckoutParams(sim.profileComplete, sim.benefitsEnabled)
+    useCheckoutParams(sim.profileComplete, benefitsStepEnabled)
   const [runId, setRunId] = useState(0)
   const [returnTo, setReturnTo] = useState<StepId | null>(null)
   const dirRef = useRef(1)
@@ -79,9 +80,9 @@ export default function App() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search)
     if (q.get('fast') === '1' && step === 'auth' && mode === 'complete' && auth === 0) {
-      setReturnTo(sim.benefitsEnabled ? 'benefits' : 'payment')
+      setReturnTo(benefitsStepEnabled ? 'benefits' : 'payment')
     }
-  }, [step, mode, auth, sim.benefitsEnabled])
+  }, [step, mode, auth, benefitsStepEnabled])
 
   // Navegação não-linear: avançar normalmente segue a sequência; mas se o
   // usuário entrou numa etapa para editar (a partir do resumo), o próximo
@@ -121,7 +122,7 @@ export default function App() {
 
   // Fast checkout: pagamento primeiro; deslogado identifica e volta ao pagamento.
   function startFast(a: 0 | 1) {
-    const firstPaymentStep = sim.benefitsEnabled ? 'benefits' : 'payment'
+    const firstPaymentStep = benefitsStepEnabled ? 'benefits' : 'payment'
     setReturnTo(a === 0 ? firstPaymentStep : null)
     setConfig({ mode: 'complete', auth: a }, a === 0 ? 'auth' : firstPaymentStep)
     setRunId((r) => r + 1)
@@ -171,7 +172,7 @@ export default function App() {
   return (
     <div className="app">
       <CheckoutProvider
-        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${sim.benefitsEnabled}-${sim.hasCashbackBalance}-${runId}`}
+        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${sim.giftCardsEnabled}-${sim.hasCashbackBalance}-${runId}`}
         mode={mode}
         auth={auth}
         sim={{

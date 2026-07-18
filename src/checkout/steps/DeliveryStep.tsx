@@ -100,6 +100,21 @@ export function DeliveryStep({
         setShowAllSaved(false)
         return true
       }
+      if (addressDetailsDone && address) {
+        setShipping('')
+        setPickup(null)
+        setAddress({ ...address, recipient: '' })
+        return true
+      }
+      if (complementDone && address) {
+        setAddress({ ...address, complement: undefined, recipient: '' })
+        return true
+      }
+      if (numberDone && address) {
+        setAddress({ ...address, number: '', complement: '', recipient: '' })
+        setNumberInput('')
+        return true
+      }
       if (entering && savedAddresses.length > 0) {
         setEntering(false)
         setShowAllSaved(false)
@@ -112,7 +127,19 @@ export function DeliveryStep({
       return false
     })
     return () => registerBack(null)
-  }, [entering, showAllSaved, savedAddresses, registerBack, setAddress])
+  }, [
+    entering,
+    showAllSaved,
+    savedAddresses,
+    registerBack,
+    setAddress,
+    address,
+    addressDetailsDone,
+    complementDone,
+    numberDone,
+    setShipping,
+    setPickup,
+  ])
 
   useEffect(() => {
     if (!isPickup) return

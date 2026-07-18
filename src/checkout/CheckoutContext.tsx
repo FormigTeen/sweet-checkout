@@ -30,7 +30,7 @@ export interface SimConfig {
   cards: number
   addresses: number
   profileComplete: boolean
-  benefitsEnabled: boolean
+  giftCardsEnabled: boolean
   hasCashbackBalance: boolean
   cashbackBalance: number
 }
@@ -109,7 +109,7 @@ const Ctx = createContext<CheckoutCtx | null>(null)
 export function CheckoutProvider({
   mode,
   auth,
-  sim = { products: 1, cards: 0, addresses: 0, profileComplete: true, benefitsEnabled: false, hasCashbackBalance: true, cashbackBalance: 2500 },
+  sim = { products: 1, cards: 0, addresses: 0, profileComplete: true, giftCardsEnabled: false, hasCashbackBalance: true, cashbackBalance: 2500 },
   children,
 }: {
   mode: 'simple' | 'complete'
@@ -287,7 +287,7 @@ export function CheckoutProvider({
     installments,
     savedCards,
     savedAddresses,
-    giftCards: sim.benefitsEnabled ? giftCardsPool : [],
+    giftCards: sim.giftCardsEnabled ? giftCardsPool : [],
     selectedGiftCardIds,
     cashbackBalance: sim.cashbackBalance,
     cashbackToUse,

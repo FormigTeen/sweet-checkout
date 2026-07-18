@@ -185,22 +185,22 @@ export function DemoDock({
                 </div>
               </div>
               <div className="sim-row">
-                <span className="sim-label">Benefícios</span>
+                <span className="sim-label">Gift cards</span>
                 <div className="seg mini">
                   <button
-                    className={sim.benefitsEnabled ? 'on' : ''}
+                    className={sim.giftCardsEnabled ? 'on' : ''}
                     onClick={() => {
                       tick()
-                      onSim({ benefitsEnabled: true })
+                      onSim({ giftCardsEnabled: true })
                     }}
                   >
                     Ativo
                   </button>
                   <button
-                    className={!sim.benefitsEnabled ? 'on' : ''}
+                    className={!sim.giftCardsEnabled ? 'on' : ''}
                     onClick={() => {
                       tick()
-                      onSim({ benefitsEnabled: false })
+                      onSim({ giftCardsEnabled: false })
                     }}
                   >
                     Inativo

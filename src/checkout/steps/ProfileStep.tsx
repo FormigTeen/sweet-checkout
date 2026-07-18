@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { BottomBar } from '../components/BottomBar'
@@ -9,7 +9,7 @@ type ProfilePhase = 'name' | 'document' | 'birth' | 'gender'
 const phases: ProfilePhase[] = ['name', 'document', 'birth', 'gender']
 
 export function ProfileStep({ onNext }: { onNext: () => void }) {
-  const { contact, setContact } = useCheckout()
+  const { contact, setContact, registerBack } = useCheckout()
   const [phase, setPhase] = useState<ProfilePhase>('name')
   const [firstName, setFirstName] = useState(contact?.firstName ?? '')
   const [lastName, setLastName] = useState(contact?.lastName ?? '')
@@ -50,6 +50,15 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
     tick()
     setGender(value)
   }
+
+  useEffect(() => {
+    registerBack(() => {
+      if (phaseIndex <= 0) return false
+      setPhase(phases[phaseIndex - 1])
+      return true
+    })
+    return () => registerBack(null)
+  }, [phaseIndex, registerBack])
 
   function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== 'Enter') return
