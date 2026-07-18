@@ -27,9 +27,6 @@ export function SuccessStep({
       reward()
       celebrate()
     }
-    // o benchmark surge sozinho, sem competir com a confirmação
-    const t = setTimeout(() => setBenchOpen(true), 1100)
-    return () => clearTimeout(t)
   }, [])
 
   return (

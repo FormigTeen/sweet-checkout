@@ -78,34 +78,36 @@ export function StorePickerSheet({
 
             <div className="store-sheet-list">
               {stores.map((s) => (
-                  <button
-                    key={s.id}
-                    className="store-row"
-                    onClick={() => {
-                      selectSound()
-                      onSelect(s.id)
-                      onClose()
-                    }}
-                  >
-                    <span className="sel-icon">
-                      <Store width={20} height={20} />
+                <button
+                  key={s.id}
+                  className="store-row"
+                  onClick={() => {
+                    selectSound()
+                    onSelect(s.id)
+                    onClose()
+                  }}
+                >
+                  <span className="sel-icon">
+                    <Store width={20} height={20} />
+                  </span>
+                  <span className="store-row-body">
+                    <span className="store-row-name">
+                      <span>{s.name}</span>
+                      {s.favorite && <span className="sel-badge">Sua loja</span>}
                     </span>
-                    <span className="store-row-body">
-                      <span className="store-row-name">
-                        {s.name}
-                        {s.favorite && <span className="sel-badge">Sua loja</span>}
-                      </span>
-                      <span className="store-row-sub">
-                        {s.neighborhood} · {s.city} ·{' '}
-                        <b className="pickup-ready">{s.ready}</b>
-                      </span>
+                    <span className="store-row-sub">
+                      {s.neighborhood} · {s.city} ·{' '}
+                      <b className="pickup-ready">{s.ready}</b>
                     </span>
+                  </span>
+                  <span className="store-row-side">
                     <span className="store-row-dist">{s.distanceKm} km</span>
                     <span className="store-row-check">
                       <ChevronRight width={15} height={15} />
                     </span>
-                  </button>
-                ))}
+                  </span>
+                </button>
+              ))}
               {stores.length === 0 && (
                 <p className="pickup-empty">Nenhuma loja encontrada.</p>
               )}

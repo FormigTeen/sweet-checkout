@@ -159,7 +159,11 @@ export default function App() {
             </main>
           </div>
 
-          {!isDone && <OrderAside />}
+          {isDone ? (
+            <div className="aside aside-spacer" aria-hidden="true" />
+          ) : (
+            <OrderAside />
+          )}
         </div>
       </CheckoutProvider>
 
