@@ -7,7 +7,7 @@ import { QrCode } from '../components/QrCode'
 import { Card, Coin, Copy, Pencil, Pix, Truck, User } from '../components/Icons'
 import { pickupStores, shippingOptions } from '../lib/mockData'
 import { brl } from '../lib/format'
-import { armRewardAudio, select, tick } from '../lib/feedback'
+import { select, tick } from '../lib/feedback'
 import type { StepId } from '../types'
 
 type PayPhase = 'review' | 'pix' | 'processing'
@@ -113,7 +113,6 @@ export function ReviewStep({
   }
 
   function pay() {
-    armRewardAudio()
     select()
     setPhase(payment === 'pix' ? 'pix' : 'processing')
   }

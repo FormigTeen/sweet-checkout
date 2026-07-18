@@ -1,6 +1,7 @@
 /* ============================================================
-   Feedback sensorial.
-   A recompensa sonora fica concentrada na finalização do pagamento.
+   Feedback sensorial — "açúcar" da interface.
+   Sons gerados via Web Audio API (sem arquivos) + vibração tátil.
+   Tudo é disparado por gesto do usuário e pode ser silenciado.
    ============================================================ */
 
 let ctx: AudioContext | null = null
@@ -25,6 +26,7 @@ export function toggleMuted(): boolean {
   } catch {
     /* noop */
   }
+  if (!muted) tick() // pequeno retorno ao religar
   return muted
 }
 
@@ -39,11 +41,6 @@ function audio(): AudioContext | null {
   } catch {
     return null
   }
-}
-
-/** Prepara o AudioContext no gesto de pagar, sem emitir som. */
-export function armRewardAudio() {
-  void audio()
 }
 
 type Wave = OscillatorType
@@ -78,17 +75,24 @@ function vibrate(pattern: number | number[]) {
   }
 }
 
-/** Interações comuns ficam silenciosas para preservar a recompensa final. */
+/** Toque leve — seleção / navegação. */
 export function tick() {
-  /* intentionally silent */
+  note(660, 0, 0.08, 0.04, 'triangle')
+  vibrate(8)
 }
 
+/** Confirmação de item / seleção que avança. */
 export function select() {
-  /* intentionally silent */
+  note(587.33, 0, 0.09, 0.05, 'triangle')
+  note(880, 0.05, 0.12, 0.05, 'sine')
+  vibrate(12)
 }
 
+/** Etapa concluída — dois tons ascendentes. */
 export function stepDone() {
-  vibrate(10)
+  note(659.25, 0, 0.12, 0.06, 'sine') // E5
+  note(987.77, 0.09, 0.18, 0.06, 'sine') // B5
+  vibrate([14, 30, 10])
 }
 
 /** Recompensa final — arpejo alegre. */
@@ -99,10 +103,16 @@ export function reward() {
   vibrate([20, 40, 20, 40, 60])
 }
 
+/** Produto protegido — selo de garantia (acorde caloroso). */
 export function protect() {
-  /* intentionally silent */
+  note(523.25, 0, 0.12, 0.05, 'sine') // C5
+  note(783.99, 0.06, 0.16, 0.055, 'sine') // G5
+  note(1046.5, 0.12, 0.2, 0.045, 'triangle') // C6
+  vibrate([12, 24, 12])
 }
 
+/** Aviso suave — erro de validação. */
 export function warn() {
-  /* intentionally silent */
+  note(220, 0, 0.16, 0.05, 'sawtooth')
+  vibrate([30, 20, 30])
 }
