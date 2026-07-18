@@ -11,6 +11,7 @@ import { select, tick } from '../lib/feedback'
 import type { StepId } from '../types'
 
 type PayPhase = 'review' | 'pix' | 'processing'
+const PAYMENT_CONFIRM_DELAY_MS = 4000
 
 function ReviewEdit({
   label,
@@ -131,7 +132,7 @@ export function ReviewStep({
 
   useEffect(() => {
     if (phase !== 'processing') return
-    const t = setTimeout(onNext, 1700)
+    const t = setTimeout(onNext, PAYMENT_CONFIRM_DELAY_MS)
     return () => clearTimeout(t)
   }, [phase, onNext])
 
@@ -172,13 +173,47 @@ export function ReviewStep({
 
   if (phase === 'processing') {
     return (
-      <div className="step-scroll pix-wait">
-        <div className="spinner big" />
-        <h1 className="step-title" style={{ marginTop: 20 }}>
-          Confirmando pagamento...
-        </h1>
-        <p className="step-sub">Isso leva só um instante.</p>
-      </div>
+      <motion.div
+        className="payment-confirm-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="payment-confirm-mark"
+          initial={{ scale: 0.78, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+        >
+          <span />
+          <b />
+        </motion.div>
+        <motion.h1
+          className="payment-confirm-title"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+        >
+          Confirmando pagamento
+        </motion.h1>
+        <motion.p
+          className="payment-confirm-sub"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+        >
+          Estamos reservando seus produtos e finalizando a compra.
+        </motion.p>
+        <div className="payment-confirm-bar" aria-hidden>
+          <motion.span
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{
+              duration: PAYMENT_CONFIRM_DELAY_MS / 1000,
+              ease: 'easeOut',
+            }}
+          />
+        </div>
+      </motion.div>
     )
   }
 

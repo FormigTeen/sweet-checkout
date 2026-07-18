@@ -11,8 +11,14 @@ import {
 import { select, stepDone, tick, warn } from '../lib/feedback'
 
 const TEST_CODE = '123456'
+const SOCIAL_LOGIN_DELAY_MS = 4000
 
-type Phase = 'start' | 'code' | 'password'
+type Phase = 'start' | 'code' | 'password' | 'loading'
+type LoadingState = {
+  title: string
+  subtitle: string
+  provider?: 'google' | 'facebook' | 'apple'
+}
 
 export function AuthStep({ onNext }: { onNext: () => void }) {
   const { contact, setContact, tap, registerBack } = useCheckout()
@@ -21,6 +27,10 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState(false)
   const [resent, setResent] = useState(false)
+  const [loading, setLoading] = useState<LoadingState>({
+    title: '',
+    subtitle: '',
+  })
   const emailRef = useRef<HTMLInputElement>(null)
   const passRef = useRef<HTMLInputElement>(null)
   const boxes = useRef<(HTMLInputElement | null)[]>([])
@@ -44,22 +54,33 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
         setPhase('start')
         return true
       }
+      if (phase === 'loading') return true
       return false
     })
     return () => registerBack(null)
   }, [phase, registerBack])
 
-  function loginWith(provider: string) {
+  function loginWith(provider: 'google' | 'facebook' | 'apple') {
+    const providerName =
+      provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : 'Apple'
     tap()
     select()
+    setLoading({
+      title: `Conectando com ${providerName}`,
+      subtitle: 'Estamos confirmando sua conta com segurança.',
+      provider,
+    })
+    setPhase('loading')
     setContact({
       phone: contact?.phone ?? '',
       name: contact?.name ?? '',
       email: contact?.email ?? `voce@${provider}.com`,
       cpf: contact?.cpf ?? '',
     })
-    stepDone()
-    setTimeout(onNext, 220)
+    setTimeout(() => {
+      stepDone()
+      onNext()
+    }, SOCIAL_LOGIN_DELAY_MS)
   }
 
   function sendCode() {
@@ -95,8 +116,15 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
 
   function verify(entered: string) {
     if (entered === TEST_CODE) {
-      stepDone()
-      setTimeout(onNext, 220)
+      setLoading({
+        title: 'Validando código',
+        subtitle: 'Só um instante enquanto liberamos a entrega.',
+      })
+      setPhase('loading')
+      setTimeout(() => {
+        stepDone()
+        onNext()
+      }, 850)
     } else {
       warn()
       setError(true)
@@ -124,7 +152,7 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
             <p className="step-sub">Entre para finalizar sua compra.</p>
 
             <div className="social">
-              <button className="social-btn" onClick={() => loginWith('gmail')}>
+              <button className="social-btn" onClick={() => loginWith('google')}>
                 <GoogleMark />
                 Continuar com Google
               </button>
@@ -266,6 +294,34 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
             >
               Entrar com código
             </button>
+          </motion.div>
+        )}
+
+        {phase === 'loading' && (
+          <motion.div
+            key="auth-loading"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="auth-center auth-loading"
+          >
+            <div className="auth-loader" aria-hidden>
+              {loading.provider === 'google' && <GoogleMark />}
+              {loading.provider === 'facebook' && <FacebookMark />}
+              {loading.provider === 'apple' && <AppleMark />}
+              {!loading.provider && <span className="spinner" />}
+            </div>
+            <h1 className="step-title">{loading.title}</h1>
+            <p className="step-sub">{loading.subtitle}</p>
+            <div className="auth-progress" aria-hidden>
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{
+                  duration: loading.provider ? SOCIAL_LOGIN_DELAY_MS / 1000 : 0.85,
+                  ease: 'easeOut',
+                }}
+              />
+            </div>
           </motion.div>
         )}
       </div>
