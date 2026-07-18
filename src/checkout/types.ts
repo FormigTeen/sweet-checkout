@@ -1,4 +1,4 @@
-export type StepId = 'cart' | 'auth' | 'delivery' | 'payment' | 'done'
+export type StepId = 'cart' | 'auth' | 'delivery' | 'payment' | 'review' | 'done'
 export type Mode = 'simple' | 'complete'
 
 export interface WarrantyOption {

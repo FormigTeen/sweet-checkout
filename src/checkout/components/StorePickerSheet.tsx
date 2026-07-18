@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Store, X } from './Icons'
+import { ChevronRight, Store, X } from './Icons'
 import { pickupStores } from '../lib/mockData'
 import { select as selectSound, tick } from '../lib/feedback'
 
 export function StorePickerSheet({
   open,
-  selectedId,
   onSelect,
   onClose,
 }: {
   open: boolean
-  selectedId: string | null
   onSelect: (id: string) => void
   onClose: () => void
 }) {
@@ -79,12 +77,10 @@ export function StorePickerSheet({
             />
 
             <div className="store-sheet-list">
-              {stores.map((s) => {
-                const on = selectedId === s.id
-                return (
+              {stores.map((s) => (
                   <button
                     key={s.id}
-                    className={`store-row ${on ? 'on' : ''}`}
+                    className="store-row"
                     onClick={() => {
                       selectSound()
                       onSelect(s.id)
@@ -105,14 +101,11 @@ export function StorePickerSheet({
                       </span>
                     </span>
                     <span className="store-row-dist">{s.distanceKm} km</span>
-                    {on && (
-                      <span className="store-row-check">
-                        <Check width={15} height={15} />
-                      </span>
-                    )}
+                    <span className="store-row-check">
+                      <ChevronRight width={15} height={15} />
+                    </span>
                   </button>
-                )
-              })}
+                ))}
               {stores.length === 0 && (
                 <p className="pickup-empty">Nenhuma loja encontrada.</p>
               )}

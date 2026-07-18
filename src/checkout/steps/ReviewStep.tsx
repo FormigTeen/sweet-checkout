@@ -1,0 +1,287 @@
+import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useCheckout } from '../CheckoutContext'
+import { BottomBar } from '../components/BottomBar'
+import { PriceTag } from '../components/PriceTag'
+import { QrCode } from '../components/QrCode'
+import { Card, Coin, Copy, Pencil, Pix, Truck, User } from '../components/Icons'
+import { shippingOptions } from '../lib/mockData'
+import { brl } from '../lib/format'
+import { select, tick } from '../lib/feedback'
+import type { StepId } from '../types'
+
+type PayPhase = 'review' | 'pix' | 'processing'
+
+function ReviewEdit({
+  label,
+  onClick,
+}: {
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button className="review-edit" onClick={onClick}>
+      <Pencil width={14} height={14} />
+      {label}
+    </button>
+  )
+}
+
+function ReviewSection({
+  icon,
+  title,
+  action,
+  children,
+}: {
+  icon: React.ReactNode
+  title: string
+  action?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <section className="review-section">
+      <div className="review-section-head">
+        <span className="review-section-icon">{icon}</span>
+        <h2>{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+export function ReviewStep({
+  onNext,
+  onEdit,
+  sequence,
+}: {
+  onNext: () => void
+  onEdit: (s: StepId) => void
+  sequence: StepId[]
+}) {
+  const {
+    items,
+    contact,
+    address,
+    shippingId,
+    payment,
+    installments,
+    totals,
+    coupon,
+    registerBack,
+  } = useCheckout()
+  const [phase, setPhase] = useState<PayPhase>('review')
+
+  const ship = shippingOptions.find((o) => o.id === shippingId)
+  const canEditContact = sequence.includes('auth') && !!contact?.email
+
+  const paymentLabel = useMemo(() => {
+    if (payment === 'pix') return 'PIX com 5% de desconto'
+    if (payment === 'lecard') return `Cartão Le biscuit em ${installments}x`
+    return installments === 1
+      ? 'Cartão de crédito à vista'
+      : `Cartão de crédito em ${installments}x sem juros`
+  }, [payment, installments])
+
+  const payLabel = payment === 'pix' ? 'Pagar com PIX' : 'Confirmar pagamento'
+  const payHint =
+    payment === 'pix'
+      ? 'Total no PIX'
+      : installments === 1
+        ? 'Total'
+        : `${installments}x de ${brl(totals.installmentValue)}`
+
+  const goEdit = (s: StepId) => () => {
+    tick()
+    onEdit(s)
+  }
+
+  function pay() {
+    select()
+    setPhase(payment === 'pix' ? 'pix' : 'processing')
+  }
+
+  useEffect(() => {
+    registerBack(() => {
+      if (phase === 'pix') {
+        setPhase('review')
+        return true
+      }
+      if (phase === 'processing') return true
+      return false
+    })
+    return () => registerBack(null)
+  }, [phase, registerBack])
+
+  useEffect(() => {
+    if (phase !== 'processing') return
+    const t = setTimeout(onNext, 1700)
+    return () => clearTimeout(t)
+  }, [phase, onNext])
+
+  useEffect(() => {
+    if (phase !== 'pix') return
+    const t = setTimeout(onNext, 3400)
+    return () => clearTimeout(t)
+  }, [phase, onNext])
+
+  if (phase === 'pix') {
+    return (
+      <div className="step-scroll pix-wait">
+        <h1 className="step-title">Pague com PIX</h1>
+        <p className="step-sub">Escaneie o código no app do seu banco.</p>
+        <motion.div
+          className="qr-frame"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        >
+          <QrCode data={`lebiscuit-${totals.total}`} />
+        </motion.div>
+        <div className="pix-amount">
+          <span>Valor</span>
+          <b className="pix-value">{brl(totals.total)}</b>
+        </div>
+        <button className="pix-copy" onClick={() => tick()}>
+          <Copy width={16} height={16} />
+          Copiar código PIX
+        </button>
+        <div className="pix-status">
+          <span className="spinner" />
+          Aguardando pagamento...
+        </div>
+      </div>
+    )
+  }
+
+  if (phase === 'processing') {
+    return (
+      <div className="step-scroll pix-wait">
+        <div className="spinner big" />
+        <h1 className="step-title" style={{ marginTop: 20 }}>
+          Confirmando pagamento...
+        </h1>
+        <p className="step-sub">Isso leva só um instante.</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="step-scroll review-scroll">
+        <h1 className="step-title">Revise seu pedido</h1>
+        <p className="step-sub">Confira as informações antes de pagar.</p>
+
+        <div className="review-stack">
+          <ReviewSection
+            icon={<Coin width={17} height={17} />}
+            title="Itens"
+            action={<ReviewEdit label="Editar" onClick={goEdit('cart')} />}
+          >
+            <div className="review-items">
+              {items.map((item) => (
+                <div className="review-item" key={item.id}>
+                  <span className="review-item-qty">{item.qty}x</span>
+                  <span className="review-item-name">{item.name}</span>
+                  <b>{brl(item.price * item.qty)}</b>
+                </div>
+              ))}
+            </div>
+          </ReviewSection>
+
+          <ReviewSection
+            icon={<Truck width={17} height={17} />}
+            title="Entrega"
+            action={<ReviewEdit label="Editar" onClick={goEdit('delivery')} />}
+          >
+            <p className="review-main-text">
+              {address?.street
+                ? `${address.street}, ${address.number}`
+                : 'Endereço não informado'}
+            </p>
+            <p className="review-sub-text">
+              {address?.district && `${address.district} · `}
+              {address?.city}/{address?.state}
+            </p>
+            <div className="review-pill-row">
+              <span>{ship?.label ?? 'Frete'}</span>
+              <b>{totals.shippingCost === 0 ? 'Grátis' : brl(totals.shippingCost)}</b>
+            </div>
+          </ReviewSection>
+
+          {canEditContact && (
+            <ReviewSection
+              icon={<User width={17} height={17} />}
+              title="Contato"
+              action={<ReviewEdit label="Editar" onClick={goEdit('auth')} />}
+            >
+              <p className="review-main-text">{contact!.name}</p>
+              <p className="review-sub-text">{contact!.email}</p>
+            </ReviewSection>
+          )}
+
+          <ReviewSection
+            icon={payment === 'pix' ? <Pix width={17} height={17} /> : <Card width={17} height={17} />}
+            title="Pagamento"
+            action={<ReviewEdit label="Editar" onClick={goEdit('payment')} />}
+          >
+            <p className="review-main-text">{paymentLabel}</p>
+            {payment !== 'pix' && (
+              <p className="review-sub-text">
+                {installments}x de {brl(totals.installmentValue)}
+              </p>
+            )}
+          </ReviewSection>
+
+          <section className="review-totals">
+            <div className="sum-row">
+              <span>Produtos</span>
+              <span>{brl(totals.productsTotal)}</span>
+            </div>
+            {totals.warrantyTotal > 0 && (
+              <div className="sum-row">
+                <span>Garantia</span>
+                <span>{brl(totals.warrantyTotal)}</span>
+              </div>
+            )}
+            {coupon && (
+              <div className="sum-row save">
+                <span>Cupom {coupon.code}</span>
+                <span>-{brl(totals.couponDiscount)}</span>
+              </div>
+            )}
+            {totals.pixSavings > 0 && (
+              <div className="sum-row save">
+                <span>Desconto PIX</span>
+                <span>-{brl(totals.pixSavings)}</span>
+              </div>
+            )}
+            <div className="sum-row">
+              <span>Frete</span>
+              <span>{totals.shippingCost === 0 ? 'Grátis' : brl(totals.shippingCost)}</span>
+            </div>
+            <div className="sum-row cash">
+              <span>
+                <Coin width={15} height={15} /> Cashback
+              </span>
+              <span>+{brl(totals.cashback)}</span>
+            </div>
+            <div className="review-total-row">
+              <span>Total</span>
+              <PriceTag cents={totals.total} size="md" />
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <BottomBar
+        label={payLabel}
+        variant="green"
+        arrow={false}
+        total={totals.total}
+        totalHint={payHint}
+        onNext={pay}
+      />
+    </>
+  )
+}

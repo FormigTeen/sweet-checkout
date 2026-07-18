@@ -10,6 +10,7 @@ import { CartStep } from './checkout/steps/CartStep'
 import { AuthStep } from './checkout/steps/AuthStep'
 import { DeliveryStep } from './checkout/steps/DeliveryStep'
 import { PaymentStep } from './checkout/steps/PaymentStep'
+import { ReviewStep } from './checkout/steps/ReviewStep'
 import { SuccessStep } from './checkout/steps/SuccessStep'
 import { stepDone } from './checkout/lib/feedback'
 import type { Mode, StepId } from './checkout/types'
@@ -47,8 +48,8 @@ export default function App() {
     next()
   }
 
-  function editStep(s: StepId) {
-    setReturnTo('payment')
+  function editStep(s: StepId, returnStep: StepId = 'review') {
+    setReturnTo(returnStep)
     go(s)
   }
 
@@ -94,6 +95,8 @@ export default function App() {
         return 'Continuar para a entrega'
       case 'payment':
         return 'Ir para o pagamento'
+      case 'review':
+        return 'Revisar pedido'
       default:
         return 'Continuar'
     }
@@ -136,13 +139,13 @@ export default function App() {
                   )}
                   {step === 'auth' && <AuthStep onNext={advance} />}
                   {step === 'delivery' && (
-                    <DeliveryStep
-                      onNext={advance}
-                      ctaLabel={ctaLabel('delivery')}
-                    />
+                    <DeliveryStep onNext={advance} />
                   )}
                   {step === 'payment' && (
-                    <PaymentStep
+                    <PaymentStep onNext={advance} />
+                  )}
+                  {step === 'review' && (
+                    <ReviewStep
                       onNext={advance}
                       onEdit={editStep}
                       sequence={sequence}

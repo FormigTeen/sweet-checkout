@@ -56,6 +56,7 @@ interface CheckoutCtx {
   address: Address | null
   shippingId: string | null
   payment: PaymentMethod
+  installments: number
   savedCards: SavedCard[]
   savedAddresses: Address[]
   hasLeCard: boolean
@@ -72,6 +73,7 @@ interface CheckoutCtx {
   setAddress: (a: Address) => void
   setShipping: (id: string) => void
   setPayment: (p: PaymentMethod) => void
+  setInstallments: (n: number) => void
   applyCoupon: (code: string) => boolean
   removeCoupon: () => void
 }
@@ -124,6 +126,7 @@ export function CheckoutProvider({
     prefillRest ? 'standard' : null,
   )
   const [payment, setPayment] = useState<PaymentMethod>('pix')
+  const [installments, setInstallments] = useState(1)
   const [coupon, setCoupon] = useState<Coupon | null>(null)
   const [taps, setTaps] = useState(0)
 
@@ -189,8 +192,9 @@ export function CheckoutProvider({
     while (installmentsMax > 1 && cardBase / installmentsMax < 500) {
       installmentsMax--
     }
-    const count = payment === 'pix' ? 1 : installmentsMax
-    const installmentValue = Math.round(cardBase / installmentsMax)
+    const boundedInstallments = Math.min(Math.max(1, installments), installmentsMax)
+    const count = payment === 'pix' ? 1 : boundedInstallments
+    const installmentValue = Math.round(cardBase / count)
 
     return {
       productsTotal,
@@ -205,7 +209,7 @@ export function CheckoutProvider({
       installmentValue,
       count,
     }
-  }, [items, shippingId, payment, coupon, adapted.maxInstallments])
+  }, [items, shippingId, payment, coupon, adapted.maxInstallments, installments])
 
   const value: CheckoutCtx = {
     items,
@@ -213,6 +217,7 @@ export function CheckoutProvider({
     address,
     shippingId,
     payment,
+    installments,
     savedCards,
     savedAddresses,
     hasLeCard: adapted.hasLeCard,
@@ -229,6 +234,7 @@ export function CheckoutProvider({
     setAddress,
     setShipping,
     setPayment,
+    setInstallments,
     applyCoupon,
     removeCoupon,
   }

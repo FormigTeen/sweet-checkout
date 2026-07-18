@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { useEnterAdvance } from '../useEnterAdvance'
-import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
 import { StorePickerSheet } from '../components/StorePickerSheet'
 import {
@@ -43,10 +42,8 @@ const BY_DISTANCE = [...pickupStores].sort((a, b) => a.distanceKm - b.distanceKm
 
 export function DeliveryStep({
   onNext,
-  ctaLabel,
 }: {
   onNext: () => void
-  ctaLabel: string
 }) {
   const {
     address,
@@ -287,8 +284,13 @@ export function DeliveryStep({
                 title={o.label}
                 subtitle={o.detail}
                 right={shipRight(o)}
+                featured={o.id === 'standard'}
+                indicator={o.id === 'pickup' ? 'check' : 'arrow'}
                 selected={shippingId === o.id}
-                onSelect={() => setShipping(o.id)}
+                onSelect={() => {
+                  setShipping(o.id)
+                  if (o.id !== 'pickup') onNext()
+                }}
               />
             ))}
 
@@ -316,8 +318,12 @@ export function DeliveryStep({
                         </>
                       }
                       right={<span className="pickup-dist">{s.distanceKm} km</span>}
+                      indicator="arrow"
                       selected={pickupId === s.id}
-                      onSelect={() => setPickupId(s.id)}
+                      onSelect={() => {
+                        setPickupId(s.id)
+                        onNext()
+                      }}
                     />
                   ))}
                   <button
@@ -336,12 +342,12 @@ export function DeliveryStep({
         )}
       </div>
 
-      <BottomBar label={ctaLabel} variant="green" disabled={!complete} onNext={onNext} />
-
       <StorePickerSheet
         open={sheetOpen}
-        selectedId={pickupId}
-        onSelect={setPickupId}
+        onSelect={(id) => {
+          setPickupId(id)
+          onNext()
+        }}
         onClose={() => setSheetOpen(false)}
       />
     </>

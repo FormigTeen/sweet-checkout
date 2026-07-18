@@ -15,7 +15,7 @@ function readParams(): CheckoutParams {
   const mode = (q.get('mode') as Mode) || DEFAULTS.mode
   const authRaw = q.get('auth')
   const auth = authRaw === '1' ? 1 : authRaw === '0' ? 0 : DEFAULTS.auth
-  const valid: StepId[] = ['cart', 'auth', 'delivery', 'payment', 'done']
+  const valid: StepId[] = ['cart', 'auth', 'delivery', 'payment', 'review', 'done']
   return {
     step: valid.includes(step) ? step : 'cart',
     mode: mode === 'complete' ? 'complete' : 'simple',
@@ -36,8 +36,8 @@ function writeUrl(p: CheckoutParams, replace = false) {
 /** Sequência de etapas conforme autenticação (auth=1 pula identificação). */
 export function sequenceFor(auth: 0 | 1): StepId[] {
   return auth === 1
-    ? ['cart', 'delivery', 'payment', 'done']
-    : ['cart', 'auth', 'delivery', 'payment', 'done']
+    ? ['cart', 'delivery', 'payment', 'review', 'done']
+    : ['cart', 'auth', 'delivery', 'payment', 'review', 'done']
 }
 
 export function useCheckoutParams() {
