@@ -853,6 +853,13 @@
   color: var(--ink);
 }
 .sel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-height: 20px;
+  white-space: nowrap;
+  line-height: 1;
   font-size: 10.5px;
   font-weight: 900;
   letter-spacing: 0.3px;
@@ -1971,6 +1978,32 @@
   font-size: 12px;
   color: var(--ink-3);
   font-weight: 700;
+}
+
+@media (max-width: 430px) {
+  .pickup-block .selectable,
+  .pickup-scroll .selectable {
+    gap: 10px;
+    padding: 13px 12px;
+  }
+
+  .pickup-block .sel-icon,
+  .pickup-scroll .sel-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .pickup-block .sel-title,
+  .pickup-scroll .sel-title {
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .pickup-block .sel-badge,
+  .pickup-scroll .sel-badge {
+    padding-inline: 6px;
+  }
 }
 
 /* ---------- Resumo revisável ---------- */
