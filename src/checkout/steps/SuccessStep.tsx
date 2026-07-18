@@ -17,8 +17,9 @@ export function SuccessStep({
   auth: 0 | 1
   onRestart: () => void
 }) {
-  const { totals, taps } = useCheckout()
+  const { totals, taps, firstTapAt } = useCheckout()
   const fired = useRef(false)
+  const elapsedMs = useRef(firstTapAt ? Date.now() - firstTapAt : null)
   const [benchOpen, setBenchOpen] = useState(false)
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export function SuccessStep({
       <BenchmarkDrawer
         open={benchOpen}
         taps={taps}
+        elapsedMs={elapsedMs.current}
         mode={mode}
         auth={auth}
         onClose={() => setBenchOpen(false)}

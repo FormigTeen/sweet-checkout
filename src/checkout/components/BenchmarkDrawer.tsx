@@ -12,18 +12,21 @@ import type { Mode } from '../types'
 export function BenchmarkDrawer({
   open,
   taps,
+  elapsedMs,
   mode,
   auth,
   onClose,
 }: {
   open: boolean
   taps: number
+  elapsedMs: number | null
   mode: Mode
   auth: 0 | 1
   onClose: () => void
 }) {
   const currentKey = benchKey(mode, auth)
   const beatsMl = taps <= MERCADO_LIVRE_TAPS
+  const elapsedLabel = formatElapsed(elapsedMs)
 
   return (
     <AnimatePresence>
@@ -61,12 +64,22 @@ export function BenchmarkDrawer({
             </div>
 
             <div className="bench-hero">
-              <span className="bench-big">{taps}</span>
-              <span className="bench-unit">
-                toques
-                <br />
-                nesta compra
-              </span>
+              <div className="bench-metric">
+                <span className="bench-big">{taps}</span>
+                <span className="bench-unit">
+                  toques
+                  <br />
+                  nesta compra
+                </span>
+              </div>
+              <div className="bench-metric time">
+                <span className="bench-big">{elapsedLabel}</span>
+                <span className="bench-unit">
+                  do 1º toque
+                  <br />
+                  até concluir
+                </span>
+              </div>
             </div>
             <p className={`bench-verdict ${beatsMl ? 'win' : ''}`}>
               {beatsMl
@@ -111,11 +124,21 @@ export function BenchmarkDrawer({
             </table>
             <p className="bench-foot">
               Toques = seleções e botões. Não conta digitação de teclado. Sem
-              scroll nas etapas rápidas.
+              scroll nas etapas rápidas. Tempo = do primeiro toque registrado
+              até a compra concluída.
             </p>
           </motion.aside>
         </motion.div>
       )}
     </AnimatePresence>
   )
+}
+
+function formatElapsed(ms: number | null) {
+  if (ms == null) return '—'
+  const totalSeconds = Math.max(1, Math.round(ms / 1000))
+  if (totalSeconds < 60) return `${totalSeconds}s`
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return seconds ? `${minutes}m ${seconds}s` : `${minutes}m`
 }

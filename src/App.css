@@ -1352,10 +1352,20 @@
   color: #9a9aa2;
 }
 .bench-hero {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 6px 0 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+.bench-metric {
+  min-width: 0;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: #24242b;
+}
+.bench-metric.time .bench-big {
+  font-size: 36px;
+  letter-spacing: 0;
 }
 .bench-big {
   font-size: 58px;
@@ -1365,6 +1375,8 @@
   color: #fff;
 }
 .bench-unit {
+  display: block;
+  margin-top: 5px;
   font-size: 14px;
   font-weight: 700;
   color: #c9c9cf;
@@ -2396,9 +2408,9 @@
 }
 
 .payment-confirm-screen {
-  flex: 1;
-  min-height: 100%;
-  width: 100%;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
   padding: 34px var(--pad);
   display: flex;
   flex-direction: column;

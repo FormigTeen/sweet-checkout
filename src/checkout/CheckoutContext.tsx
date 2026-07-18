@@ -65,6 +65,7 @@ interface CheckoutCtx {
   totals: Totals
   coupon: Coupon | null
   taps: number
+  firstTapAt: number | null
   tap: () => void
   resetTaps: () => void
   registerBack: (fn: (() => boolean) | null) => void
@@ -135,9 +136,16 @@ export function CheckoutProvider({
   const [installments, setInstallments] = useState(1)
   const [coupon, setCoupon] = useState<Coupon | null>(null)
   const [taps, setTaps] = useState(0)
+  const [firstTapAt, setFirstTapAt] = useState<number | null>(null)
 
-  const tap = () => setTaps((t) => t + 1)
-  const resetTaps = () => setTaps(0)
+  const tap = () => {
+    setFirstTapAt((started) => started ?? Date.now())
+    setTaps((t) => t + 1)
+  }
+  const resetTaps = () => {
+    setFirstTapAt(null)
+    setTaps(0)
+  }
 
   // interceptador de "voltar": a etapa desfaz seu sub-estado antes de
   // deixar o botão do topo navegar entre etapas.
@@ -232,6 +240,7 @@ export function CheckoutProvider({
     totals,
     coupon,
     taps,
+    firstTapAt,
     tap,
     resetTaps,
     registerBack,
