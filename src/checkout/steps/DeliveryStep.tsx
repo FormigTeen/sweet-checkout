@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { useEnterAdvance } from '../useEnterAdvance'
-import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
 import { StorePickerSheet } from '../components/StorePickerSheet'
 import {
@@ -69,11 +68,16 @@ export function DeliveryStep({
   const showSaved = savedAddresses.length > 0 && !entering
   const cepRef = useRef<HTMLInputElement>(null)
   const numRef = useRef<HTMLInputElement>(null)
+  const complementRef = useRef<HTMLInputElement>(null)
+  const recipientRef = useRef<HTMLInputElement>(null)
   const pickupRef = useRef<HTMLDivElement>(null)
 
   const hasStreet = !!address?.street
   const numberDone = !!address?.number
+  const complementDone = numberDone && typeof address?.complement === 'string'
   const addressDetailsDone = numberDone && !!address?.recipient
+  const addressProgress =
+    addressDetailsDone ? 'complete' : complementDone ? 'complement' : numberDone ? 'number' : 'base'
   const isPickup = shippingId === 'pickup'
   const complete = addressDetailsDone && !!shippingId && (!isPickup || !!pickupId)
   useEnterAdvance(complete, onNext)
@@ -83,9 +87,11 @@ export function DeliveryStep({
       if (showSaved) return
       if (!hasStreet) cepRef.current?.focus()
       else if (!numberDone) numRef.current?.focus()
+      else if (!complementDone) complementRef.current?.focus()
+      else if (!addressDetailsDone) recipientRef.current?.focus()
     }, 60)
     return () => clearTimeout(t)
-  }, [hasStreet, numberDone, showSaved])
+  }, [hasStreet, numberDone, complementDone, addressDetailsDone, showSaved])
 
   // voltar contextual: sair do "outro endereço" volta aos endereços salvos
   useEffect(() => {
@@ -155,17 +161,22 @@ export function DeliveryStep({
   function confirmNumber() {
     if (!numberInput.trim() || !address) return
     select()
-    setAddress({ ...address, number: numberInput.trim() })
+    setAddress({ ...address, number: numberInput.trim(), complement: undefined, recipient: '' })
   }
 
-  function confirmAddressDetails() {
-    if (!address || !recipientInput.trim()) return
+  function confirmComplement() {
+    if (!address) return
     select()
     setAddress({
       ...address,
       complement: complementInput.trim(),
-      recipient: recipientInput.trim(),
     })
+  }
+
+  function confirmRecipient() {
+    if (!address || !recipientInput.trim()) return
+    select()
+    setAddress({ ...address, recipient: recipientInput.trim() })
   }
 
   function editAddress() {
@@ -253,21 +264,58 @@ export function DeliveryStep({
           </label>
         ) : (
           <motion.div
-            className="addr-card"
+            className={`addr-card addr-card-${addressProgress}`}
+            layout
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: addressProgress === 'base' ? 1 : 1.01,
+            }}
+            transition={{ type: 'spring', stiffness: 330, damping: 28 }}
           >
             <div className="addr-main">
               <span className="addr-street">
                 {address!.street}
-                {address!.number ? `, ${address!.number}` : ''}
               </span>
-              <span className="addr-rest">
-                {address!.complement && `${address!.complement} · `}
-                {address!.recipient && `Recebe: ${address!.recipient} · `}
-                {address!.district} · {address!.city}/{address!.state} ·{' '}
-                {address!.cep}
-              </span>
+              <motion.span className="addr-rest" layout>
+                {address!.district} · {address!.city}/{address!.state} · {address!.cep}
+              </motion.span>
+              <AnimatePresence>
+                {address!.number && (
+                  <motion.span
+                    key="number"
+                    className="addr-detail-pill"
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    Número {address!.number}
+                  </motion.span>
+                )}
+                {typeof address!.complement === 'string' && (
+                  <motion.span
+                    key="complement"
+                    className="addr-detail-pill"
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    {address!.complement || 'Sem complemento'}
+                  </motion.span>
+                )}
+                {address!.recipient && (
+                  <motion.span
+                    key="recipient"
+                    className="addr-detail-pill addr-detail-strong"
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    Recebe: {address!.recipient}
+                  </motion.span>
+                )}
+              </AnimatePresence>
               {address!.label && <span className="addr-tag">{address!.label}</span>}
             </div>
             <button
@@ -317,26 +365,78 @@ export function DeliveryStep({
           </motion.div>
         )}
 
-        {numberDone && !addressDetailsDone && (
+        {numberDone && !complementDone && (
           <motion.div className="address-extra" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <label className="field">
+            <div className="field">
               <span className="field-label">Complemento</span>
-              <input
-                className="field-input"
-                placeholder="Apto, bloco, referência"
-                value={complementInput}
-                onChange={(e) => setComplementInput(e.target.value)}
-              />
-            </label>
-            <label className="field">
+              <div className="num-row">
+                <input
+                  ref={complementRef}
+                  className="field-input"
+                  placeholder="Apto, bloco, referência"
+                  value={complementInput}
+                  onChange={(e) => setComplementInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      confirmComplement()
+                    }
+                  }}
+                />
+                <button
+                  className="num-confirm"
+                  aria-label="Confirmar complemento"
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    tap()
+                    confirmComplement()
+                  }}
+                >
+                  <ArrowRight width={22} height={22} />
+                </button>
+              </div>
+              <span className="enter-hint">
+                <Return width={13} height={13} /> Toque na seta ou pressione Enter
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        {complementDone && !addressDetailsDone && (
+          <motion.div className="address-extra" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="field">
               <span className="field-label">Quem vai receber</span>
-              <input
-                className="field-input"
-                placeholder="Nome do recebedor"
-                value={recipientInput}
-                onChange={(e) => setRecipientInput(e.target.value)}
-              />
-            </label>
+              <div className="num-row">
+                <input
+                  ref={recipientRef}
+                  className="field-input"
+                  placeholder="Nome do recebedor"
+                  value={recipientInput}
+                  onChange={(e) => setRecipientInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      confirmRecipient()
+                    }
+                  }}
+                />
+                <button
+                  className="num-confirm"
+                  aria-label="Confirmar recebedor"
+                  disabled={!recipientInput.trim()}
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    tap()
+                    confirmRecipient()
+                  }}
+                >
+                  <ArrowRight width={22} height={22} />
+                </button>
+              </div>
+              <span className="enter-hint">
+                <Return width={13} height={13} /> Toque na seta ou pressione Enter
+              </span>
+            </div>
           </motion.div>
         )}
 
@@ -403,7 +503,7 @@ export function DeliveryStep({
                       setSheetOpen(true)
                     }}
                   >
-                    Ver todas as {pickupStores.length} lojas
+                    Ver todas as lojas
                   </button>
                 </motion.div>
               )}
@@ -420,16 +520,6 @@ export function DeliveryStep({
         }}
         onClose={() => setSheetOpen(false)}
       />
-      {numberDone && !addressDetailsDone && (
-        <BottomBar
-          label="Confirmar entrega"
-          disabled={!recipientInput.trim()}
-          onNext={() => {
-            tap()
-            confirmAddressDetails()
-          }}
-        />
-      )}
     </>
   )
 }

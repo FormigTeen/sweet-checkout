@@ -53,9 +53,7 @@ export function StorePickerSheet({
               <span className="sheet-icon">
                 <Store width={20} height={20} />
               </span>
-              <h2 className="sheet-title">
-                Lojas para retirada · {pickupStores.length}
-              </h2>
+              <h2 className="sheet-title">Lojas para retirada</h2>
               <button
                 className="icon-btn subtle"
                 aria-label="Fechar"
