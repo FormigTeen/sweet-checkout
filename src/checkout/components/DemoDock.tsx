@@ -7,7 +7,8 @@ import { select, tick } from '../lib/feedback'
 
 function fastLink(auth: 0 | 1) {
   const { origin, pathname } = window.location
-  return `${origin}${pathname}?step=payment&mode=complete&auth=${auth}`
+  const step = auth === 1 ? 'payment' : 'auth'
+  return `${origin}${pathname}?step=${step}&mode=complete&auth=${auth}&fast=1`
 }
 
 function SimRow({
@@ -167,7 +168,7 @@ export function DemoDock({
                 <Bolt width={12} height={12} /> Fast checkout
               </span>
               <p className="demo-fast-desc">
-                Abre direto no pagamento com os dados do último pedido.
+                Abre no pagamento; se deslogado, identifica antes.
               </p>
               <div className="fast-rows">
                 <div className="fast-row">

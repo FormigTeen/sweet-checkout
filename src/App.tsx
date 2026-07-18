@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
 import { CheckoutProvider, type SimConfig } from './checkout/CheckoutContext'
@@ -34,6 +34,13 @@ export default function App() {
 
   const { step, mode, auth } = params
   const isDone = step === 'done'
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    if (q.get('fast') === '1' && step === 'auth' && mode === 'complete' && auth === 0) {
+      setReturnTo('payment')
+    }
+  }, [step, mode, auth])
 
   // Navegação não-linear: avançar normalmente segue a sequência; mas se o
   // usuário entrou numa etapa para editar (a partir do resumo), o próximo
@@ -71,10 +78,10 @@ export default function App() {
     setRunId((r) => r + 1)
   }
 
-  // Fast checkout: cai direto no pagamento com os dados do último pedido.
+  // Fast checkout: pagamento primeiro; deslogado identifica e volta ao pagamento.
   function startFast(a: 0 | 1) {
-    setReturnTo(null)
-    setConfig({ mode: 'complete', auth: a }, 'payment')
+    setReturnTo(a === 0 ? 'payment' : null)
+    setConfig({ mode: 'complete', auth: a }, a === 0 ? 'auth' : 'payment')
     setRunId((r) => r + 1)
   }
 
