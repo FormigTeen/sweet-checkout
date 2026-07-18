@@ -912,6 +912,20 @@
   color: #fff;
 }
 
+/* ---------- Saved addresses ---------- */
+.saved-addr {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.saved-addr .group-label {
+  margin: 0;
+}
+.saved-addr .see-all {
+  margin-top: 0;
+}
+
 /* ---------- Fields ---------- */
 .field {
   display: block;
