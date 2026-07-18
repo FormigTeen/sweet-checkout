@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useCheckout } from '../CheckoutContext'
 import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
@@ -20,6 +20,7 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
   const [cashbackInput, setCashbackInput] = useState(
     cashbackToUse > 0 ? centsToInput(cashbackToUse) : '',
   )
+  const cashbackInputRef = useRef<HTMLInputElement>(null)
 
   const hasCashbackBalance = cashbackBalance > 0
   const hasGiftCards = giftCards.length > 0
@@ -37,6 +38,10 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
     setCashbackInput(centsToInput(next))
     setCashbackToUse(next)
     tick()
+  }
+
+  function focusCashbackInput() {
+    requestAnimationFrame(() => cashbackInputRef.current?.focus())
   }
 
   return (
@@ -96,27 +101,51 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
               </span>
               <span>
                 <b>Cashback disponível</b>
-                <small>Saldo {brl(cashbackBalance)} para usar nesta compra</small>
+                <small>Use seu saldo para reduzir o valor agora.</small>
               </span>
+            </div>
+            <div
+              className={`cashback-balance-box ${cashbackToUse > 0 ? 'on' : ''}`}
+            >
+              <span>
+                <small>Saldo para esta compra</small>
+                <b>{brl(cashbackBalance)}</b>
+              </span>
+              {cashbackToUse > 0 && (
+                <strong>{brl(cashbackToUse)} em uso</strong>
+              )}
             </div>
             <label className="field cashback-use-field">
               <span className="field-label">Quanto deseja usar?</span>
               <input
+                ref={cashbackInputRef}
                 className="field-input big"
                 inputMode="numeric"
                 placeholder="R$ 0,00"
                 value={cashbackInput}
                 onChange={(e) => onCashback(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return
+                  e.preventDefault()
+                  select()
+                  onNext()
+                }}
               />
             </label>
             <div className="cashback-use-actions">
               <button
-                onClick={() => onCashback(centsToInput(cashbackBalance))}
+                onClick={() => {
+                  onCashback(centsToInput(cashbackBalance))
+                  focusCashbackInput()
+                }}
               >
                 Usar tudo
               </button>
               <button
-                onClick={() => onCashback('')}
+                onClick={() => {
+                  onCashback('')
+                  focusCashbackInput()
+                }}
                 disabled={cashbackToUse === 0}
               >
                 Limpar

@@ -1391,6 +1391,52 @@
   color: var(--ink-2);
   font-weight: 700;
 }
+.cashback-balance-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid #d1b76f;
+  background: linear-gradient(135deg, #fff8e6 0%, #eef9f1 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+.cashback-balance-box.on {
+  border-color: var(--green);
+  background: linear-gradient(135deg, #e4f7eb 0%, #fff6de 100%);
+}
+.cashback-balance-box span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+.cashback-balance-box small {
+  color: #6f561f;
+  font-size: 11.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.cashback-balance-box b {
+  color: var(--green-dark);
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 950;
+}
+.cashback-balance-box strong {
+  flex: none;
+  max-width: 44%;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.15;
+  font-weight: 950;
+  text-align: center;
+}
 .cashback-use-field {
   margin-top: 14px;
 }
@@ -1410,6 +1456,16 @@
 }
 .cashback-use-actions button:disabled {
   opacity: 0.45;
+}
+
+@media (max-width: 360px) {
+  .cashback-balance-box {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .cashback-balance-box strong {
+    max-width: 100%;
+  }
 }
 
 /* ---------- Bottom bar ---------- */
