@@ -7,6 +7,7 @@ const LABELS: Record<StepId, string> = {
   auth: 'Você',
   profile: 'Dados',
   delivery: 'Entrega',
+  benefits: 'Benefícios',
   payment: 'Pagamento',
   review: 'Revisão',
   done: 'Pronto',

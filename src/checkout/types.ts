@@ -1,4 +1,4 @@
-export type StepId = 'cart' | 'auth' | 'profile' | 'delivery' | 'payment' | 'review' | 'done'
+export type StepId = 'cart' | 'auth' | 'profile' | 'delivery' | 'benefits' | 'payment' | 'review' | 'done'
 export type Mode = 'simple' | 'complete'
 
 export interface WarrantyOption {
@@ -57,6 +57,13 @@ export interface SavedCard {
   id: string
   brand: string
   last4: string
+}
+
+export interface GiftCard {
+  id: string
+  label: string
+  code: string
+  balance: number
 }
 
 export interface CheckoutState {

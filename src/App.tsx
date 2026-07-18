@@ -11,6 +11,7 @@ import { CartStep } from './checkout/steps/CartStep'
 import { AuthStep } from './checkout/steps/AuthStep'
 import { ProfileStep } from './checkout/steps/ProfileStep'
 import { DeliveryStep } from './checkout/steps/DeliveryStep'
+import { BenefitsStep } from './checkout/steps/BenefitsStep'
 import { PaymentStep } from './checkout/steps/PaymentStep'
 import { ReviewStep } from './checkout/steps/ReviewStep'
 import { SuccessStep } from './checkout/steps/SuccessStep'
@@ -18,11 +19,15 @@ import { stepDone } from './checkout/lib/feedback'
 import type { Mode, StepId } from './checkout/types'
 
 const SIM_STORAGE_KEY = 'lb.sim.config'
+const DEFAULT_CASHBACK_BALANCE = 2500
 const DEFAULT_SIM: SimConfig = {
-  products: 2,
-  cards: 1,
-  addresses: 1,
+  products: 1,
+  cards: 0,
+  addresses: 0,
   profileComplete: true,
+  benefitsEnabled: false,
+  hasCashbackBalance: true,
+  cashbackBalance: DEFAULT_CASHBACK_BALANCE,
 }
 
 function loadSimConfig(): SimConfig {
@@ -35,6 +40,9 @@ function loadSimConfig(): SimConfig {
       cards: clamp(parsed.cards ?? DEFAULT_SIM.cards, 0, 7),
       addresses: clamp(parsed.addresses ?? DEFAULT_SIM.addresses, 0, 7),
       profileComplete: parsed.profileComplete ?? DEFAULT_SIM.profileComplete,
+      benefitsEnabled: parsed.benefitsEnabled ?? DEFAULT_SIM.benefitsEnabled,
+      hasCashbackBalance: parsed.hasCashbackBalance ?? DEFAULT_SIM.hasCashbackBalance,
+      cashbackBalance: DEFAULT_CASHBACK_BALANCE,
     }
   } catch {
     return DEFAULT_SIM
@@ -56,7 +64,7 @@ function saveSimConfig(sim: SimConfig) {
 export default function App() {
   const [sim, setSim] = useState<SimConfig>(loadSimConfig)
   const { params, sequence, index, next, back, go, setConfig } =
-    useCheckoutParams(sim.profileComplete)
+    useCheckoutParams(sim.profileComplete, sim.benefitsEnabled)
   const [runId, setRunId] = useState(0)
   const [returnTo, setReturnTo] = useState<StepId | null>(null)
   const dirRef = useRef(1)
@@ -71,9 +79,9 @@ export default function App() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search)
     if (q.get('fast') === '1' && step === 'auth' && mode === 'complete' && auth === 0) {
-      setReturnTo('payment')
+      setReturnTo(sim.benefitsEnabled ? 'benefits' : 'payment')
     }
-  }, [step, mode, auth])
+  }, [step, mode, auth, sim.benefitsEnabled])
 
   // Navegação não-linear: avançar normalmente segue a sequência; mas se o
   // usuário entrou numa etapa para editar (a partir do resumo), o próximo
@@ -113,8 +121,9 @@ export default function App() {
 
   // Fast checkout: pagamento primeiro; deslogado identifica e volta ao pagamento.
   function startFast(a: 0 | 1) {
-    setReturnTo(a === 0 ? 'payment' : null)
-    setConfig({ mode: 'complete', auth: a }, a === 0 ? 'auth' : 'payment')
+    const firstPaymentStep = sim.benefitsEnabled ? 'benefits' : 'payment'
+    setReturnTo(a === 0 ? firstPaymentStep : null)
+    setConfig({ mode: 'complete', auth: a }, a === 0 ? 'auth' : firstPaymentStep)
     setRunId((r) => r + 1)
   }
 
@@ -142,6 +151,8 @@ export default function App() {
         return 'Completar dados'
       case 'payment':
         return 'Ir para o pagamento'
+      case 'benefits':
+        return 'Ver benefícios'
       case 'review':
         return 'Revisar pedido'
       default:
@@ -160,10 +171,13 @@ export default function App() {
   return (
     <div className="app">
       <CheckoutProvider
-        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${runId}`}
+        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${sim.benefitsEnabled}-${sim.hasCashbackBalance}-${runId}`}
         mode={mode}
         auth={auth}
-        sim={sim}
+        sim={{
+          ...sim,
+          cashbackBalance: sim.hasCashbackBalance ? DEFAULT_CASHBACK_BALANCE : 0,
+        }}
       >
         <div className={`shell ${isDone ? 'is-done' : ''}`}>
           <div className="phone">
@@ -188,6 +202,9 @@ export default function App() {
                   {step === 'profile' && <ProfileStep onNext={advance} />}
                   {step === 'delivery' && (
                     <DeliveryStep onNext={advance} />
+                  )}
+                  {step === 'benefits' && (
+                    <BenefitsStep onNext={advance} />
                   )}
                   {step === 'payment' && (
                     <PaymentStep onNext={advance} />

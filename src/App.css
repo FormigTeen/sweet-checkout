@@ -1202,6 +1202,99 @@
   font-weight: 700;
 }
 
+/* ---------- Benefícios ---------- */
+.benefits-step .pay-list {
+  margin-top: 14px;
+}
+.benefit-reward {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid #ead096;
+  background: #fff6dd;
+  color: #74510f;
+  box-shadow: var(--sh-1);
+}
+.benefit-reward.on {
+  border-color: var(--green);
+  background: #e5f7ec;
+  color: var(--green-dark);
+  box-shadow: 0 12px 26px rgba(24, 112, 66, 0.13);
+}
+.benefit-reward-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #fff;
+  flex: none;
+}
+.benefit-reward span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.benefit-reward b {
+  font-size: 15px;
+}
+.benefit-reward small {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: currentColor;
+}
+.cashback-use-card {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--sh-1);
+}
+.cashback-use-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cashback-use-head span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cashback-use-head b {
+  font-size: 15px;
+  color: var(--ink);
+}
+.cashback-use-head small {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 700;
+}
+.cashback-use-field {
+  margin-top: 14px;
+}
+.cashback-use-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cashback-use-actions button {
+  min-height: 42px;
+  border-radius: 10px;
+  background: var(--surface-tint);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+.cashback-use-actions button:disabled {
+  opacity: 0.45;
+}
+
 /* ---------- Bottom bar ---------- */
 .bottombar {
   position: relative;
@@ -1812,22 +1905,61 @@
 .profile-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-top: 22px;
 }
 .profile-options button {
-  padding: 15px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 62px;
+  padding: 16px;
   border-radius: var(--r-md);
   border: 2px solid var(--line-2);
   background: var(--surface);
   font-size: 14.5px;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--ink);
   text-align: left;
+  box-shadow: var(--sh-1);
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.profile-options button:hover {
+  border-color: var(--green);
+  box-shadow: var(--sh-2);
+  transform: translateY(-1px);
 }
 .profile-options button.on {
   border-color: var(--green);
   background: #ddf3e7;
+  color: var(--green-dark);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 28%, transparent),
+    0 12px 26px rgba(24, 112, 66, 0.14);
+}
+.profile-options button span {
+  min-width: 0;
+}
+.profile-options button i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2px solid var(--line-2);
+  background: var(--surface);
+  color: var(--green-dark);
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 950;
+  flex: none;
+}
+.profile-options button.on i {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
 }
 .auth-loading {
   min-height: 330px;
@@ -2344,6 +2476,32 @@
 }
 .review-store-box small {
   font-size: 12px;
+  color: var(--ink-2);
+}
+.review-reward {
+  padding: 13px;
+  border-radius: 12px;
+  border: 1.5px solid #ead096;
+  background: linear-gradient(180deg, #fff9e8, #fff);
+  box-shadow: 0 10px 24px rgba(184, 121, 26, 0.11);
+}
+.review-reward-kicker {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.review-reward b {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+.review-reward p {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.35;
   color: var(--ink-2);
 }
 .review-totals {

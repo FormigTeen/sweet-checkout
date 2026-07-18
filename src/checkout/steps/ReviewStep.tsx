@@ -69,6 +69,9 @@ export function ReviewStep({
     selectedCardId,
     installments,
     savedCards,
+    selectedGiftCardIds,
+    giftCards,
+    cashbackToUse,
     totals,
     coupon,
     registerBack,
@@ -80,6 +83,7 @@ export function ReviewStep({
   const card = selectedCardId
     ? savedCards.find((c) => c.id === selectedCardId)
     : null
+  const selectedGifts = giftCards.filter((g) => selectedGiftCardIds.includes(g.id))
   void sequence
 
   const paymentLabel = useMemo(() => {
@@ -297,6 +301,19 @@ export function ReviewStep({
             {paymentDetail && <p className="review-sub-text">{paymentDetail}</p>}
           </ReviewSection>
 
+          <ReviewSection
+            icon={<Coin width={17} height={17} />}
+            title="Promoção aplicada"
+          >
+            <div className="review-reward">
+              <span className="review-reward-kicker">Recompensa do pedido</span>
+              <b>Você manteve o melhor preço desta compra</b>
+              <p>
+                Frete grátis garantido e desconto PIX reservado até a confirmação do pagamento.
+              </p>
+            </div>
+          </ReviewSection>
+
           <section className="review-totals">
             <div className="sum-row">
               <span>Produtos</span>
@@ -312,6 +329,22 @@ export function ReviewStep({
               <div className="sum-row save">
                 <span>Cupom {coupon.code}</span>
                 <span>-{brl(totals.couponDiscount)}</span>
+              </div>
+            )}
+            {selectedGifts.length > 0 && totals.giftCardDiscount > 0 && (
+              <div className="sum-row save">
+                <span>
+                  {selectedGifts.length === 1
+                    ? selectedGifts[0].label
+                    : `${selectedGifts.length} gift cards`}
+                </span>
+                <span>-{brl(totals.giftCardDiscount)}</span>
+              </div>
+            )}
+            {cashbackToUse > 0 && totals.cashbackDiscount > 0 && (
+              <div className="sum-row save">
+                <span>Cashback usado</span>
+                <span>-{brl(totals.cashbackDiscount)}</span>
               </div>
             )}
             {totals.pixSavings > 0 && (

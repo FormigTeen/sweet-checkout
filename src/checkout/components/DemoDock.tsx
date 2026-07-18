@@ -184,6 +184,52 @@ export function DemoDock({
                   </button>
                 </div>
               </div>
+              <div className="sim-row">
+                <span className="sim-label">Benefícios</span>
+                <div className="seg mini">
+                  <button
+                    className={sim.benefitsEnabled ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ benefitsEnabled: true })
+                    }}
+                  >
+                    Ativo
+                  </button>
+                  <button
+                    className={!sim.benefitsEnabled ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ benefitsEnabled: false })
+                    }}
+                  >
+                    Inativo
+                  </button>
+                </div>
+              </div>
+              <div className="sim-row">
+                <span className="sim-label">Cashback</span>
+                <div className="seg mini">
+                  <button
+                    className={sim.hasCashbackBalance ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ hasCashbackBalance: true })
+                    }}
+                  >
+                    Com saldo
+                  </button>
+                  <button
+                    className={!sim.hasCashbackBalance ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ hasCashbackBalance: false })
+                    }}
+                  >
+                    Sem saldo
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="demo-fast">

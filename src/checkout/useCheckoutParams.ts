@@ -15,7 +15,7 @@ function readParams(): CheckoutParams {
   const mode = (q.get('mode') as Mode) || DEFAULTS.mode
   const authRaw = q.get('auth')
   const auth = authRaw === '1' ? 1 : authRaw === '0' ? 0 : DEFAULTS.auth
-  const valid: StepId[] = ['cart', 'auth', 'profile', 'delivery', 'payment', 'review', 'done']
+  const valid: StepId[] = ['cart', 'auth', 'profile', 'delivery', 'benefits', 'payment', 'review', 'done']
   return {
     step: valid.includes(step) ? step : 'cart',
     mode: mode === 'complete' ? 'complete' : 'simple',
@@ -34,14 +34,15 @@ function writeUrl(p: CheckoutParams, replace = false) {
 }
 
 /** Sequência de etapas conforme autenticação (auth=1 pula identificação). */
-export function sequenceFor(auth: 0 | 1, profileComplete = true): StepId[] {
+export function sequenceFor(auth: 0 | 1, profileComplete = true, benefitsEnabled = false): StepId[] {
   const profile: StepId[] = profileComplete ? [] : ['profile']
+  const benefits: StepId[] = benefitsEnabled ? ['benefits'] : []
   return auth === 1
-    ? ['cart', ...profile, 'delivery', 'payment', 'review', 'done']
-    : ['cart', 'auth', ...profile, 'delivery', 'payment', 'review', 'done']
+    ? ['cart', ...profile, 'delivery', ...benefits, 'payment', 'review', 'done']
+    : ['cart', 'auth', ...profile, 'delivery', ...benefits, 'payment', 'review', 'done']
 }
 
-export function useCheckoutParams(profileComplete = true) {
+export function useCheckoutParams(profileComplete = true, benefitsEnabled = false) {
   const [params, setParams] = useState<CheckoutParams>(readParams)
 
   // Grava a URL inicial (replace) para deixar os params explícitos.
@@ -57,7 +58,7 @@ export function useCheckoutParams(profileComplete = true) {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  const sequence = sequenceFor(params.auth, profileComplete)
+  const sequence = sequenceFor(params.auth, profileComplete, benefitsEnabled)
   const index = Math.max(0, sequence.indexOf(params.step))
 
   const go = useCallback((step: StepId) => {
@@ -70,14 +71,14 @@ export function useCheckoutParams(profileComplete = true) {
 
   const next = useCallback(() => {
     setParams((prev) => {
-      const seq = sequenceFor(prev.auth, profileComplete)
+      const seq = sequenceFor(prev.auth, profileComplete, benefitsEnabled)
       const i = seq.indexOf(prev.step)
       const step = seq[Math.min(seq.length - 1, i + 1)]
       const nextP = { ...prev, step }
       writeUrl(nextP)
       return nextP
     })
-  }, [profileComplete])
+  }, [profileComplete, benefitsEnabled])
 
   const back = useCallback(() => {
     // usa o histórico do navegador para preservar a pilha

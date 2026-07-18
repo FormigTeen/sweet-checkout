@@ -1,4 +1,4 @@
-import type { Address, SavedCard, ShippingOption } from '../types'
+import type { Address, GiftCard, SavedCard, ShippingOption } from '../types'
 
 // Pools para simulação (o 1º item espelha o orderForm).
 export const savedCardsPool: SavedCard[] = [
@@ -9,6 +9,21 @@ export const savedCardsPool: SavedCard[] = [
   { id: '5', brand: 'Hipercard', last4: '8801' },
   { id: '6', brand: 'Amex', last4: '3209' },
   { id: '7', brand: 'Mastercard', last4: '6642' },
+]
+
+export const giftCardsPool: GiftCard[] = [
+  {
+    id: 'gc-1',
+    label: 'Gift Card Le biscuit',
+    code: 'LB-2026-85',
+    balance: 8500,
+  },
+  {
+    id: 'gc-2',
+    label: 'Vale presente',
+    code: 'PRESENTE-40',
+    balance: 4000,
+  },
 ]
 
 export const savedAddressPool: Address[] = [

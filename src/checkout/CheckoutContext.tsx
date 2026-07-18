@@ -11,6 +11,7 @@ import type {
   Address,
   CartItem,
   Contact,
+  GiftCard,
   PaymentMethod,
   SavedCard,
 } from './types'
@@ -18,6 +19,7 @@ import { sampleOrderForm } from './lib/orderForm'
 import { adaptOrderForm } from './lib/orderFormAdapter'
 import {
   COUPONS,
+  giftCardsPool,
   savedAddressPool,
   savedCardsPool,
   shippingOptions,
@@ -28,6 +30,9 @@ export interface SimConfig {
   cards: number
   addresses: number
   profileComplete: boolean
+  benefitsEnabled: boolean
+  hasCashbackBalance: boolean
+  cashbackBalance: number
 }
 
 const PIX_DISCOUNT = 0.05 // 5% extra no PIX
@@ -49,6 +54,8 @@ interface Totals {
   warrantyTotal: number
   shippingCost: number
   couponDiscount: number
+  giftCardDiscount: number
+  cashbackDiscount: number
   itemsBase: number
   pixSavings: number
   total: number
@@ -69,6 +76,10 @@ interface CheckoutCtx {
   installments: number
   savedCards: SavedCard[]
   savedAddresses: Address[]
+  giftCards: GiftCard[]
+  selectedGiftCardIds: string[]
+  cashbackBalance: number
+  cashbackToUse: number
   hasLeCard: boolean
   totals: Totals
   coupon: Coupon | null
@@ -87,6 +98,8 @@ interface CheckoutCtx {
   setPayment: (p: PaymentMethod) => void
   setSelectedCard: (id: string | null) => void
   setInstallments: (n: number) => void
+  toggleGiftCard: (id: string) => void
+  setCashbackToUse: (value: number) => void
   applyCoupon: (code: string) => boolean
   removeCoupon: () => void
 }
@@ -96,7 +109,7 @@ const Ctx = createContext<CheckoutCtx | null>(null)
 export function CheckoutProvider({
   mode,
   auth,
-  sim = { products: 2, cards: 1, addresses: 1, profileComplete: true },
+  sim = { products: 1, cards: 0, addresses: 0, profileComplete: true, benefitsEnabled: false, hasCashbackBalance: true, cashbackBalance: 2500 },
   children,
 }: {
   mode: 'simple' | 'complete'
@@ -149,6 +162,8 @@ export function CheckoutProvider({
   const [payment, setPayment] = useState<PaymentMethod>('pix')
   const [selectedCardId, setSelectedCard] = useState<string | null>(null)
   const [installments, setInstallments] = useState(1)
+  const [selectedGiftCardIds, setSelectedGiftCardIds] = useState<string[]>([])
+  const [cashbackToUse, setCashbackToUseRaw] = useState(0)
   const [coupon, setCoupon] = useState<Coupon | null>(null)
   const [taps, setTaps] = useState(0)
   const [firstTapAt, setFirstTapAt] = useState<number | null>(null)
@@ -204,16 +219,24 @@ export function CheckoutProvider({
     const couponDiscount = coupon
       ? Math.round((productsTotal * coupon.pct) / 100)
       : 0
-    const itemsBase = productsTotal + warrantyTotal + shippingCost - couponDiscount
-
-    const isPix = payment === 'pix'
-    const pixSavings = isPix ? Math.round(itemsBase * PIX_DISCOUNT) : 0
-    const total = itemsBase - pixSavings
-
     const cashback = items.reduce(
       (s, i) => s + Math.round((i.price * i.qty * (i.cashbackPct ?? 0)) / 100),
       0,
     )
+    const beforeBenefits = productsTotal + warrantyTotal + shippingCost - couponDiscount
+    const giftBalance = giftCardsPool
+      .filter((g) => selectedGiftCardIds.includes(g.id))
+      .reduce((sum, g) => sum + g.balance, 0)
+    const giftCardDiscount = Math.min(giftBalance, beforeBenefits)
+    const cashbackDiscount = Math.min(
+      Math.max(0, cashbackToUse),
+      Math.max(0, beforeBenefits - giftCardDiscount),
+    )
+    const itemsBase = Math.max(0, beforeBenefits - giftCardDiscount - cashbackDiscount)
+
+    const isPix = payment === 'pix'
+    const pixSavings = isPix ? Math.round(itemsBase * PIX_DISCOUNT) : 0
+    const total = itemsBase - pixSavings
 
     // parcelas sem juros: mínimo R$5/parcela, teto = maxInstallments
     const cardBase = itemsBase
@@ -230,6 +253,8 @@ export function CheckoutProvider({
       warrantyTotal,
       shippingCost,
       couponDiscount,
+      giftCardDiscount,
+      cashbackDiscount,
       itemsBase,
       pixSavings,
       total,
@@ -238,7 +263,18 @@ export function CheckoutProvider({
       installmentValue,
       count,
     }
-  }, [items, shippingId, payment, coupon, adapted.maxInstallments, installments])
+  }, [items, shippingId, payment, coupon, adapted.maxInstallments, installments, selectedGiftCardIds, cashbackToUse])
+
+  const toggleGiftCard = (id: string) => {
+    setSelectedGiftCardIds((ids) =>
+      ids.includes(id) ? ids.filter((giftId) => giftId !== id) : [...ids, id],
+    )
+  }
+
+  const setCashbackToUse = (value: number) => {
+    const max = Math.max(0, sim.cashbackBalance)
+    setCashbackToUseRaw(Math.min(max, Math.max(0, value)))
+  }
 
   const value: CheckoutCtx = {
     items,
@@ -251,6 +287,10 @@ export function CheckoutProvider({
     installments,
     savedCards,
     savedAddresses,
+    giftCards: sim.benefitsEnabled ? giftCardsPool : [],
+    selectedGiftCardIds,
+    cashbackBalance: sim.cashbackBalance,
+    cashbackToUse,
     hasLeCard: adapted.hasLeCard,
     totals,
     coupon,
@@ -269,6 +309,8 @@ export function CheckoutProvider({
     setPayment,
     setSelectedCard,
     setInstallments,
+    toggleGiftCard,
+    setCashbackToUse,
     applyCoupon,
     removeCoupon,
   }

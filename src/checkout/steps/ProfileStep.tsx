@@ -51,6 +51,12 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
     setGender(value)
   }
 
+  function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    if (ready) saveAndNext()
+  }
+
   return (
     <>
       <div className="step-scroll profile-step">
@@ -77,6 +83,7 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
                   autoComplete="given-name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  onKeyDown={onInputKeyDown}
                 />
               </label>
               <label className="field">
@@ -86,6 +93,7 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
                   autoComplete="family-name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  onKeyDown={onInputKeyDown}
                 />
               </label>
             </>
@@ -104,6 +112,7 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
                   placeholder="000.000.000-00"
                   value={cpf}
                   onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  onKeyDown={onInputKeyDown}
                 />
               </label>
             </>
@@ -122,6 +131,7 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
                   placeholder="DD/MM/AAAA"
                   value={birthDate}
                   onChange={(e) => setBirthDate(formatDate(e.target.value))}
+                  onKeyDown={onInputKeyDown}
                 />
               </label>
             </>
@@ -138,7 +148,8 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
                     className={gender === g ? 'on' : ''}
                     onClick={() => chooseGender(g)}
                   >
-                    {g}
+                    <span>{g}</span>
+                    <i aria-hidden>{gender === g ? '✓' : ''}</i>
                   </button>
                 ))}
               </div>
