@@ -23,7 +23,10 @@ export function Header({
             aria-label="Voltar"
             // evita que o 1º toque apenas tire o foco do input (blur) e "coma" o clique
             onPointerDown={(e) => e.preventDefault()}
+            onPointerUp={(e) => e.currentTarget.blur()}
+            onPointerCancel={(e) => e.currentTarget.blur()}
             onClick={() => {
+              ;(document.activeElement as HTMLElement | null)?.blur()
               tick()
               // primeiro desfaz um sub-estado da etapa; se não houver, volta de etapa
               if (!runBack()) onBack()

@@ -29,7 +29,15 @@ export function BottomBar({
       {total != null && (
         <div className="bb-total">
           <span className="bb-total-label">{totalHint ?? 'Total'}</span>
-          <PriceTag cents={total} size="md" />
+          <motion.span
+            key={total}
+            className="bb-total-price"
+            initial={{ scale: 0.94, y: 2 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 18 }}
+          >
+            <PriceTag cents={total} size="md" />
+          </motion.span>
         </div>
       )}
       <motion.button

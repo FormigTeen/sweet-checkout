@@ -12,6 +12,7 @@ import {
   Coin,
   Info,
   Minus,
+  Pix,
   Plus,
   Shield,
 } from '../components/Icons'
@@ -233,6 +234,19 @@ export function CartStep({
         </div>
 
         <CouponField />
+
+        <div className="pix-discount-card">
+          <span className="pix-discount-icon">
+            <Pix width={22} height={22} />
+          </span>
+          <div className="pix-discount-text">
+            <span className="pix-discount-label">Desconto no PIX disponível</span>
+            <span className="pix-discount-desc">
+              Você confirma essa vantagem na etapa de pagamento.
+            </span>
+          </div>
+          <span className="pix-discount-value">5% OFF</span>
+        </div>
 
         {totals.cashback > 0 && (
           <div className="cashback-card">

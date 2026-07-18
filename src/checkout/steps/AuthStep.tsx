@@ -20,6 +20,7 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
   const [email, setEmail] = useState(contact?.email ?? '')
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState(false)
+  const [resent, setResent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const passRef = useRef<HTMLInputElement>(null)
   const boxes = useRef<(HTMLInputElement | null)[]>([])
@@ -64,6 +65,7 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
   function sendCode() {
     if (!emailOk) return
     select()
+    setResent(false)
     setContact({
       phone: contact?.phone ?? '',
       name: contact?.name ?? '',
@@ -71,6 +73,14 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
       cpf: contact?.cpf ?? '',
     })
     setPhase('code')
+  }
+
+  function resendCode() {
+    tick()
+    setCode(['', '', '', '', '', ''])
+    setError(false)
+    setResent(true)
+    boxes.current[0]?.focus()
   }
 
   function setDigit(i: number, v: string) {
@@ -202,8 +212,13 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
             <p className="otp-hint">
               {error
                 ? 'Código incorreto, tente de novo.'
-                : `Código de teste: ${TEST_CODE}`}
+                : resent
+                  ? `Código reenviado. Use ${TEST_CODE}.`
+                  : `Código de teste: ${TEST_CODE}`}
             </p>
+            <button className="linkish block otp-resend" onClick={resendCode}>
+              Reenviar código
+            </button>
             <button
               className="linkish block"
               onClick={() => {

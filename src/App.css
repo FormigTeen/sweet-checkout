@@ -352,6 +352,10 @@
 .hdr .icon-btn:active {
   background: rgba(255, 255, 255, 0.18);
 }
+.hdr .icon-btn:focus:not(:focus-visible) {
+  background: transparent;
+  transform: none;
+}
 .icon-btn-ghost {
   width: 38px;
   height: 38px;
@@ -1114,6 +1118,9 @@
   font-size: 12.5px;
   color: var(--ink-3);
 }
+.otp-resend {
+  margin-top: 10px;
+}
 
 /* ---------- Payment summary ---------- */
 .pay-summary {
@@ -1170,6 +1177,10 @@
   font-size: 11px;
   font-weight: 700;
   color: var(--ink-3);
+}
+.bb-total-price {
+  display: inline-block;
+  transform-origin: left center;
 }
 .cta {
   display: flex;
@@ -1833,6 +1844,56 @@
 }
 .price.cashback-val {
   color: #684909;
+}
+
+.pix-discount-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 1.5px solid #a8d9bd;
+  background: linear-gradient(135deg, #f3fff8 0%, #e2f7eb 100%);
+}
+.pix-discount-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--green-dark);
+  flex: none;
+  box-shadow: var(--sh-1);
+}
+.pix-discount-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.pix-discount-label {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--green-dark);
+}
+.pix-discount-desc {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.pix-discount-value {
+  flex: none;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 /* ---------- Cupom ---------- */

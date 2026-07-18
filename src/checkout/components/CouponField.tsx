@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { Check, X } from './Icons'
@@ -10,6 +10,7 @@ export function CouponField() {
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
+  const entryRef = useRef<HTMLDivElement>(null)
 
   if (coupon) {
     return (
@@ -59,8 +60,17 @@ export function CouponField() {
     }
   }
 
+  function closeIfFocusLeft() {
+    window.setTimeout(() => {
+      if (entryRef.current?.contains(document.activeElement)) return
+      setOpen(false)
+      setCode('')
+      setError(false)
+    }, 0)
+  }
+
   return (
-    <div className="coupon-entry">
+    <div className="coupon-entry" ref={entryRef} onBlur={closeIfFocusLeft}>
       <div className={`coupon-inputwrap ${error ? 'error' : ''}`}>
         <input
           className="coupon-input"
