@@ -15,7 +15,7 @@ function readParams(): CheckoutParams {
   const mode = (q.get('mode') as Mode) || DEFAULTS.mode
   const authRaw = q.get('auth')
   const auth = authRaw === '1' ? 1 : authRaw === '0' ? 0 : DEFAULTS.auth
-  const valid: StepId[] = ['cart', 'auth', 'delivery', 'payment', 'review', 'done']
+  const valid: StepId[] = ['cart', 'auth', 'profile', 'delivery', 'payment', 'review', 'done']
   return {
     step: valid.includes(step) ? step : 'cart',
     mode: mode === 'complete' ? 'complete' : 'simple',
@@ -34,13 +34,14 @@ function writeUrl(p: CheckoutParams, replace = false) {
 }
 
 /** Sequência de etapas conforme autenticação (auth=1 pula identificação). */
-export function sequenceFor(auth: 0 | 1): StepId[] {
+export function sequenceFor(auth: 0 | 1, profileComplete = true): StepId[] {
+  const profile: StepId[] = profileComplete ? [] : ['profile']
   return auth === 1
-    ? ['cart', 'delivery', 'payment', 'review', 'done']
-    : ['cart', 'auth', 'delivery', 'payment', 'review', 'done']
+    ? ['cart', ...profile, 'delivery', 'payment', 'review', 'done']
+    : ['cart', 'auth', ...profile, 'delivery', 'payment', 'review', 'done']
 }
 
-export function useCheckoutParams() {
+export function useCheckoutParams(profileComplete = true) {
   const [params, setParams] = useState<CheckoutParams>(readParams)
 
   // Grava a URL inicial (replace) para deixar os params explícitos.
@@ -56,7 +57,7 @@ export function useCheckoutParams() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  const sequence = sequenceFor(params.auth)
+  const sequence = sequenceFor(params.auth, profileComplete)
   const index = Math.max(0, sequence.indexOf(params.step))
 
   const go = useCallback((step: StepId) => {
@@ -69,14 +70,14 @@ export function useCheckoutParams() {
 
   const next = useCallback(() => {
     setParams((prev) => {
-      const seq = sequenceFor(prev.auth)
+      const seq = sequenceFor(prev.auth, profileComplete)
       const i = seq.indexOf(prev.step)
       const step = seq[Math.min(seq.length - 1, i + 1)]
       const nextP = { ...prev, step }
       writeUrl(nextP)
       return nextP
     })
-  }, [])
+  }, [profileComplete])
 
   const back = useCallback(() => {
     // usa o histórico do navegador para preservar a pilha

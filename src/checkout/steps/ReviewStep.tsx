@@ -4,7 +4,7 @@ import { useCheckout } from '../CheckoutContext'
 import { BottomBar } from '../components/BottomBar'
 import { PriceTag } from '../components/PriceTag'
 import { QrCode } from '../components/QrCode'
-import { Card, Coin, Copy, Pencil, Pix, Truck, User } from '../components/Icons'
+import { Card, Coin, Copy, Pencil, Pix, Truck } from '../components/Icons'
 import { pickupStores, shippingOptions } from '../lib/mockData'
 import { brl } from '../lib/format'
 import { select, tick } from '../lib/feedback'
@@ -62,7 +62,6 @@ export function ReviewStep({
 }) {
   const {
     items,
-    contact,
     address,
     shippingId,
     pickupId,
@@ -81,7 +80,7 @@ export function ReviewStep({
   const card = selectedCardId
     ? savedCards.find((c) => c.id === selectedCardId)
     : null
-  const canEditContact = sequence.includes('auth') && !!contact?.email
+  void sequence
 
   const paymentLabel = useMemo(() => {
     if (payment === 'pix') return 'PIX com 5% de desconto'
@@ -253,6 +252,8 @@ export function ReviewStep({
                     : 'Endereço de referência não informado'}
                 </p>
                 <p className="review-sub-text">
+                  {address?.complement && `${address.complement} · `}
+                  {address?.recipient && `Recebe: ${address.recipient} · `}
                   {address?.district && `${address.district} · `}
                   {address?.city}/{address?.state}
                 </p>
@@ -275,6 +276,8 @@ export function ReviewStep({
                     : 'Endereço não informado'}
                 </p>
                 <p className="review-sub-text">
+                  {address?.complement && `${address.complement} · `}
+                  {address?.recipient && `Recebe: ${address.recipient} · `}
                   {address?.district && `${address.district} · `}
                   {address?.city}/{address?.state}
                 </p>
@@ -285,17 +288,6 @@ export function ReviewStep({
               <b>{totals.shippingCost === 0 ? 'Grátis' : brl(totals.shippingCost)}</b>
             </div>
           </ReviewSection>
-
-          {canEditContact && (
-            <ReviewSection
-              icon={<User width={17} height={17} />}
-              title="Contato"
-              action={<ReviewEdit label="Editar" onClick={goEdit('auth')} />}
-            >
-              <p className="review-main-text">{contact!.name}</p>
-              <p className="review-sub-text">{contact!.email}</p>
-            </ReviewSection>
-          )}
 
           <ReviewSection
             icon={payment === 'pix' ? <Pix width={17} height={17} /> : <Card width={17} height={17} />}

@@ -27,9 +27,17 @@ export interface SimConfig {
   products: number
   cards: number
   addresses: number
+  profileComplete: boolean
 }
 
 const PIX_DISCOUNT = 0.05 // 5% extra no PIX
+
+const fallbackContact: Contact = {
+  phone: '(11) 99999-9999',
+  name: '',
+  email: 'marina.silva@email.com',
+  cpf: '',
+}
 
 export interface Coupon {
   code: string
@@ -88,7 +96,7 @@ const Ctx = createContext<CheckoutCtx | null>(null)
 export function CheckoutProvider({
   mode,
   auth,
-  sim = { products: 2, cards: 1, addresses: 1 },
+  sim = { products: 2, cards: 1, addresses: 1, profileComplete: true },
   children,
 }: {
   mode: 'simple' | 'complete'
@@ -121,8 +129,15 @@ export function CheckoutProvider({
   )
 
   const [items, setItems] = useState<CartItem[]>(initialItems)
+  const savedContact = adapted.savedContact ?? fallbackContact
   const [contact, setContact] = useState<Contact | null>(
-    prefillContact ? adapted.savedContact : null,
+    prefillContact && sim.profileComplete ? {
+      ...savedContact,
+      firstName: 'Marina',
+      lastName: 'Silva',
+      birthDate: '1991-04-18',
+      gender: 'Feminino',
+    } : prefillContact ? { ...savedContact, name: '', cpf: '' } : null,
   )
   const [address, setAddress] = useState<Address | null>(
     prefillRest ? savedAddresses[0] ?? null : null,

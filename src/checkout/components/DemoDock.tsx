@@ -151,16 +151,39 @@ export function DemoDock({
                 label="Cartões salvos"
                 value={sim.cards}
                 min={0}
-                max={3}
+                max={7}
                 onChange={(v) => onSim({ cards: v })}
               />
               <SimRow
                 label="Endereços salvos"
                 value={sim.addresses}
                 min={0}
-                max={3}
+                max={7}
                 onChange={(v) => onSim({ addresses: v })}
               />
+              <div className="sim-row">
+                <span className="sim-label">Dados</span>
+                <div className="seg mini">
+                  <button
+                    className={sim.profileComplete ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ profileComplete: true })
+                    }}
+                  >
+                    Completos
+                  </button>
+                  <button
+                    className={!sim.profileComplete ? 'on' : ''}
+                    onClick={() => {
+                      tick()
+                      onSim({ profileComplete: false })
+                    }}
+                  >
+                    Incompletos
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="demo-fast">

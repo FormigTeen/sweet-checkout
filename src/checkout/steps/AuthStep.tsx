@@ -37,10 +37,10 @@ export function AuthStep({ onNext }: { onNext: () => void }) {
 
   const emailOk = /\S+@\S+\.\S+/.test(email)
 
-  // autofocus por fase
+  // Autofocus somente depois da escolha do usuario; no e-mail inicial o teclado
+  // mobile aparece cedo demais e atrapalha a leitura das opções.
   useEffect(() => {
     const t = setTimeout(() => {
-      if (phase === 'start') emailRef.current?.focus()
       if (phase === 'code') boxes.current[0]?.focus()
       if (phase === 'password') passRef.current?.focus()
     }, 60)

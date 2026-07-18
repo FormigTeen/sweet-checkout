@@ -7,7 +7,7 @@ import { Card, Pix, Plus } from '../components/Icons'
 import { brl } from '../lib/format'
 import { select } from '../lib/feedback'
 
-type Phase = 'method' | 'newcard' | 'savedcvv' | 'installments'
+type Phase = 'method' | 'cards' | 'newcard' | 'savedcvv' | 'installments'
 
 function NewCardForm() {
   return (
@@ -89,7 +89,7 @@ export function PaymentStep({
         setPhase(sel === 'new' ? 'newcard' : sel.startsWith('saved:') ? 'savedcvv' : 'method')
         return true
       }
-      if (phase === 'newcard' || phase === 'savedcvv') {
+      if (phase === 'newcard' || phase === 'savedcvv' || phase === 'cards') {
         setPhase('method')
         return true
       }
@@ -212,8 +212,46 @@ export function PaymentStep({
     )
   }
 
+  if (phase === 'cards') {
+    return (
+      <div className="step-scroll">
+        <h1 className="step-title">Cartões salvos</h1>
+        <p className="step-sub">Escolha um cartão ou adicione outro.</p>
+        <div className="pay-list">
+          {savedCards.map((c) => (
+            <Selectable
+              key={c.id}
+              icon={<Card width={22} height={22} />}
+              title={`${c.brand} •••• ${c.last4}`}
+              subtitle={`em até ${totals.installmentsMax}x sem juros`}
+              indicator="arrow"
+              selected={sel === `saved:${c.id}`}
+              onSelect={() => {
+                choose(`saved:${c.id}`)
+                setPhase('savedcvv')
+              }}
+            />
+          ))}
+          <Selectable
+            icon={<Plus width={22} height={22} />}
+            title="Adicionar outro cartão"
+            subtitle="Usar um cartão novo"
+            indicator="arrow"
+            selected={sel === 'new'}
+            onSelect={() => {
+              choose('new')
+              setPhase('newcard')
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
   // ---------- Método (cartões salvos inline) ----------
   const parcela = `em até ${totals.installmentsMax}x sem juros`
+  const visibleCards = savedCards.slice(0, 3)
+  const hiddenCards = savedCards.length - visibleCards.length
   return (
     <div className="step-scroll">
       <h1 className="step-title">Como quer pagar?</h1>
@@ -237,7 +275,7 @@ export function PaymentStep({
           }}
         />
 
-        {savedCards.map((c) => (
+        {visibleCards.map((c) => (
           <Selectable
             key={c.id}
             icon={<Card width={22} height={22} />}
@@ -251,6 +289,17 @@ export function PaymentStep({
             }}
           />
         ))}
+
+        {hiddenCards > 0 && (
+          <Selectable
+            icon={<Card width={22} height={22} />}
+            title={`Ver outros ${hiddenCards} cartões`}
+            subtitle="Selecionar outro cartão salvo"
+            indicator="arrow"
+            selected={false}
+            onSelect={() => setPhase('cards')}
+          />
+        )}
 
         <Selectable
           icon={<Plus width={22} height={22} />}

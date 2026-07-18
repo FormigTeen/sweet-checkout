@@ -1,4 +1,4 @@
-export type StepId = 'cart' | 'auth' | 'delivery' | 'payment' | 'review' | 'done'
+export type StepId = 'cart' | 'auth' | 'profile' | 'delivery' | 'payment' | 'review' | 'done'
 export type Mode = 'simple' | 'complete'
 
 export interface WarrantyOption {
@@ -25,6 +25,7 @@ export interface Address {
   street: string
   number: string
   complement?: string
+  recipient?: string
   district: string
   city: string
   state: string
@@ -44,8 +45,12 @@ export type PaymentMethod = 'pix' | 'card' | 'lecard' | 'boleto'
 export interface Contact {
   phone: string
   name: string
+  firstName?: string
+  lastName?: string
   email: string
   cpf: string
+  birthDate?: string
+  gender?: string
 }
 
 export interface SavedCard {

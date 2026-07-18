@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCheckout } from '../CheckoutContext'
 import { useEnterAdvance } from '../useEnterAdvance'
+import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
 import { StorePickerSheet } from '../components/StorePickerSheet'
 import {
@@ -57,8 +58,11 @@ export function DeliveryStep({
     registerBack,
   } = useCheckout()
   const [numberInput, setNumberInput] = useState(address?.number ?? '')
+  const [complementInput, setComplementInput] = useState(address?.complement ?? '')
+  const [recipientInput, setRecipientInput] = useState(address?.recipient ?? '')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [entering, setEntering] = useState(false)
+  const [showAllSaved, setShowAllSaved] = useState(false)
 
   const sameAddr = (a: typeof address, b: (typeof savedAddresses)[number]) =>
     !!a && a.cep === b.cep && a.number === b.number && a.street === b.street
@@ -69,8 +73,9 @@ export function DeliveryStep({
 
   const hasStreet = !!address?.street
   const numberDone = !!address?.number
+  const addressDetailsDone = numberDone && !!address?.recipient
   const isPickup = shippingId === 'pickup'
-  const complete = numberDone && !!shippingId && (!isPickup || !!pickupId)
+  const complete = addressDetailsDone && !!shippingId && (!isPickup || !!pickupId)
   useEnterAdvance(complete, onNext)
 
   useEffect(() => {
@@ -85,16 +90,23 @@ export function DeliveryStep({
   // voltar contextual: sair do "outro endereço" volta aos endereços salvos
   useEffect(() => {
     registerBack(() => {
+      if (showAllSaved) {
+        setShowAllSaved(false)
+        return true
+      }
       if (entering && savedAddresses.length > 0) {
         setEntering(false)
+        setShowAllSaved(false)
         setNumberInput('')
+        setComplementInput('')
+        setRecipientInput('')
         setAddress(savedAddresses[0])
         return true
       }
       return false
     })
     return () => registerBack(null)
-  }, [entering, savedAddresses, registerBack, setAddress])
+  }, [entering, showAllSaved, savedAddresses, registerBack, setAddress])
 
   useEffect(() => {
     if (!isPickup) return
@@ -124,6 +136,8 @@ export function DeliveryStep({
     const sel = pickupStores.find((s) => s.id === pickupId)
     return sel ? [...base, sel] : base
   }, [pickupId, base])
+  const visibleAddresses = showAllSaved ? savedAddresses : savedAddresses.slice(0, 3)
+  const hiddenAddresses = showAllSaved ? 0 : savedAddresses.length - visibleAddresses.length
 
   function onCep(v: string) {
     const cep = formatCep(v)
@@ -131,8 +145,10 @@ export function DeliveryStep({
     if (found) {
       tick()
       setAddress(found)
+      setComplementInput('')
+      setRecipientInput('')
     } else {
-      setAddress({ cep, street: '', number: '', district: '', city: '', state: '' })
+      setAddress({ cep, street: '', number: '', complement: '', recipient: '', district: '', city: '', state: '' })
     }
   }
 
@@ -142,10 +158,20 @@ export function DeliveryStep({
     setAddress({ ...address, number: numberInput.trim() })
   }
 
+  function confirmAddressDetails() {
+    if (!address || !recipientInput.trim()) return
+    select()
+    setAddress({
+      ...address,
+      complement: complementInput.trim(),
+      recipient: recipientInput.trim(),
+    })
+  }
+
   function editAddress() {
     tick()
     setNumberInput('')
-    setAddress({ cep: '', street: '', number: '', district: '', city: '', state: '' })
+    setAddress({ cep: '', street: '', number: '', complement: '', recipient: '', district: '', city: '', state: '' })
   }
 
   return (
@@ -157,26 +183,44 @@ export function DeliveryStep({
         {showSaved ? (
           <div className="saved-addr">
             <span className="group-label">Endereço de entrega</span>
-            {savedAddresses.map((a) => (
+            {visibleAddresses.map((a) => (
               <Selectable
                 key={`${a.label}-${a.cep}`}
                 icon={<MapPin width={20} height={20} />}
                 title={a.label ?? a.street}
-                subtitle={`${a.street}, ${a.number} · ${a.district} · ${a.city}/${a.state}`}
+                subtitle={`${a.street}, ${a.number}${a.complement ? ` · ${a.complement}` : ''} · ${a.recipient ?? 'Recebedor não informado'}`}
                 selected={sameAddr(address, a)}
-                onSelect={() => setAddress(a)}
+                onSelect={() => {
+                  setAddress(a)
+                  setComplementInput(a.complement ?? '')
+                  setRecipientInput(a.recipient ?? '')
+                }}
               />
             ))}
+            {hiddenAddresses > 0 && (
+              <button
+                className="see-all"
+                onClick={() => {
+                  tick()
+                  setShowAllSaved(true)
+                }}
+              >
+                Ver outros {hiddenAddresses} endereços
+              </button>
+            )}
             <button
               className="see-all"
               onClick={() => {
                 tick()
                 setNumberInput('')
+                setShowAllSaved(false)
                 setEntering(true)
                 setAddress({
                   cep: '',
                   street: '',
                   number: '',
+                  complement: '',
+                  recipient: '',
                   district: '',
                   city: '',
                   state: '',
@@ -219,6 +263,8 @@ export function DeliveryStep({
                 {address!.number ? `, ${address!.number}` : ''}
               </span>
               <span className="addr-rest">
+                {address!.complement && `${address!.complement} · `}
+                {address!.recipient && `Recebe: ${address!.recipient} · `}
                 {address!.district} · {address!.city}/{address!.state} ·{' '}
                 {address!.cep}
               </span>
@@ -271,7 +317,30 @@ export function DeliveryStep({
           </motion.div>
         )}
 
-        {numberDone && (
+        {numberDone && !addressDetailsDone && (
+          <motion.div className="address-extra" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <label className="field">
+              <span className="field-label">Complemento</span>
+              <input
+                className="field-input"
+                placeholder="Apto, bloco, referência"
+                value={complementInput}
+                onChange={(e) => setComplementInput(e.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field-label">Quem vai receber</span>
+              <input
+                className="field-input"
+                placeholder="Nome do recebedor"
+                value={recipientInput}
+                onChange={(e) => setRecipientInput(e.target.value)}
+              />
+            </label>
+          </motion.div>
+        )}
+
+        {addressDetailsDone && (
           <motion.div
             className="ship-list"
             initial={{ opacity: 0, y: 12 }}
@@ -351,6 +420,16 @@ export function DeliveryStep({
         }}
         onClose={() => setSheetOpen(false)}
       />
+      {numberDone && !addressDetailsDone && (
+        <BottomBar
+          label="Confirmar entrega"
+          disabled={!recipientInput.trim()}
+          onNext={() => {
+            tap()
+            confirmAddressDetails()
+          }}
+        />
+      )}
     </>
   )
 }

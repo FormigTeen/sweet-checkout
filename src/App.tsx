@@ -9,6 +9,7 @@ import { OrderAside } from './checkout/components/OrderAside'
 import { PostPurchaseAside } from './checkout/components/PostPurchaseAside'
 import { CartStep } from './checkout/steps/CartStep'
 import { AuthStep } from './checkout/steps/AuthStep'
+import { ProfileStep } from './checkout/steps/ProfileStep'
 import { DeliveryStep } from './checkout/steps/DeliveryStep'
 import { PaymentStep } from './checkout/steps/PaymentStep'
 import { ReviewStep } from './checkout/steps/ReviewStep'
@@ -16,16 +17,48 @@ import { SuccessStep } from './checkout/steps/SuccessStep'
 import { stepDone } from './checkout/lib/feedback'
 import type { Mode, StepId } from './checkout/types'
 
+const SIM_STORAGE_KEY = 'lb.sim.config'
+const DEFAULT_SIM: SimConfig = {
+  products: 2,
+  cards: 1,
+  addresses: 1,
+  profileComplete: true,
+}
+
+function loadSimConfig(): SimConfig {
+  try {
+    const raw = localStorage.getItem(SIM_STORAGE_KEY)
+    if (!raw) return DEFAULT_SIM
+    const parsed = JSON.parse(raw) as Partial<SimConfig>
+    return {
+      products: clamp(parsed.products ?? DEFAULT_SIM.products, 1, 4),
+      cards: clamp(parsed.cards ?? DEFAULT_SIM.cards, 0, 7),
+      addresses: clamp(parsed.addresses ?? DEFAULT_SIM.addresses, 0, 7),
+      profileComplete: parsed.profileComplete ?? DEFAULT_SIM.profileComplete,
+    }
+  } catch {
+    return DEFAULT_SIM
+  }
+}
+
+function clamp(v: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, v))
+}
+
+function saveSimConfig(sim: SimConfig) {
+  try {
+    localStorage.setItem(SIM_STORAGE_KEY, JSON.stringify(sim))
+  } catch {
+    // A simulacao continua funcional mesmo quando o storage do navegador falha.
+  }
+}
+
 export default function App() {
+  const [sim, setSim] = useState<SimConfig>(loadSimConfig)
   const { params, sequence, index, next, back, go, setConfig } =
-    useCheckoutParams()
+    useCheckoutParams(sim.profileComplete)
   const [runId, setRunId] = useState(0)
   const [returnTo, setReturnTo] = useState<StepId | null>(null)
-  const [sim, setSim] = useState<SimConfig>({
-    products: 2,
-    cards: 1,
-    addresses: 1,
-  })
   const dirRef = useRef(1)
   const lastIndex = useRef(index)
 
@@ -87,7 +120,11 @@ export default function App() {
 
   function changeSim(patch: Partial<SimConfig>) {
     setReturnTo(null)
-    setSim((s) => ({ ...s, ...patch }))
+    setSim((s) => {
+      const nextSim = { ...s, ...patch }
+      saveSimConfig(nextSim)
+      return nextSim
+    })
   }
 
   // Rótulo do CTA por etapa (não há indicador de etapas no topo).
@@ -101,6 +138,8 @@ export default function App() {
         return 'Continuar'
       case 'delivery':
         return 'Continuar para a entrega'
+      case 'profile':
+        return 'Completar dados'
       case 'payment':
         return 'Ir para o pagamento'
       case 'review':
@@ -121,7 +160,7 @@ export default function App() {
   return (
     <div className="app">
       <CheckoutProvider
-        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${runId}`}
+        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${runId}`}
         mode={mode}
         auth={auth}
         sim={sim}
@@ -146,6 +185,7 @@ export default function App() {
                     <CartStep onNext={advance} ctaLabel={ctaLabel('cart')} />
                   )}
                   {step === 'auth' && <AuthStep onNext={advance} />}
+                  {step === 'profile' && <ProfileStep onNext={advance} />}
                   {step === 'delivery' && (
                     <DeliveryStep onNext={advance} />
                   )}

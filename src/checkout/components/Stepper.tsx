@@ -5,6 +5,7 @@ import type { StepId } from '../types'
 const LABELS: Record<StepId, string> = {
   cart: 'Sacola',
   auth: 'Você',
+  profile: 'Dados',
   delivery: 'Entrega',
   payment: 'Pagamento',
   review: 'Revisão',
