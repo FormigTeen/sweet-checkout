@@ -1771,7 +1771,7 @@
 
 /* ---------- Resumo revisável ---------- */
 .review-scroll {
-  padding-bottom: 18px;
+  padding-bottom: calc(var(--bar-h) + 18px);
 }
 .review-stack {
   display: flex;
@@ -2078,7 +2078,14 @@
 
 /* ---------- Lista de lojas (retirada) ---------- */
 .pickup-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0;
   overflow: hidden;
+}
+.pickup-block .group-label {
+  margin: 0;
 }
 .pickup-search {
   width: 100%;

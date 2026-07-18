@@ -278,6 +278,7 @@ export function ReviewStep({
         label={payLabel}
         variant="green"
         arrow={false}
+        sticky
         total={totals.total}
         totalHint={payHint}
         onNext={pay}
