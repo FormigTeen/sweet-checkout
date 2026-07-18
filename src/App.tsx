@@ -6,6 +6,7 @@ import { useCheckoutParams } from './checkout/useCheckoutParams'
 import { Header } from './checkout/components/Header'
 import { DemoDock } from './checkout/components/DemoDock'
 import { OrderAside } from './checkout/components/OrderAside'
+import { PostPurchaseAside } from './checkout/components/PostPurchaseAside'
 import { CartStep } from './checkout/steps/CartStep'
 import { AuthStep } from './checkout/steps/AuthStep'
 import { DeliveryStep } from './checkout/steps/DeliveryStep'
@@ -159,11 +160,7 @@ export default function App() {
             </main>
           </div>
 
-          {isDone ? (
-            <div className="aside aside-spacer" aria-hidden="true" />
-          ) : (
-            <OrderAside />
-          )}
+          {isDone ? <PostPurchaseAside /> : <OrderAside />}
         </div>
       </CheckoutProvider>
 
