@@ -51,11 +51,12 @@ export function DeliveryStep({
     savedAddresses,
     shippingId,
     setShipping,
+    pickupId,
+    setPickup,
     tap,
     registerBack,
   } = useCheckout()
   const [numberInput, setNumberInput] = useState(address?.number ?? '')
-  const [pickupId, setPickupId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [entering, setEntering] = useState(false)
 
@@ -97,7 +98,7 @@ export function DeliveryStep({
 
   useEffect(() => {
     if (!isPickup) return
-    if (!pickupId && FAVORITE) setPickupId(FAVORITE.id)
+    if (!pickupId && FAVORITE) setPickup(FAVORITE.id)
     // espera o layout expandir e rola o conteúdo até as lojas ficarem à vista
     const t = setTimeout(() => {
       const cont = pickupRef.current?.closest('.step') as HTMLElement | null
@@ -105,7 +106,7 @@ export function DeliveryStep({
     }, 160)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPickup])
+  }, [isPickup, pickupId, setPickup])
 
   // Lista fixa (favorita + mais próximas). NÃO reordena ao selecionar —
   // uma loja escolhida na busca aparece anexada ao fim, sem trocar posições.
@@ -321,7 +322,7 @@ export function DeliveryStep({
                       indicator="arrow"
                       selected={pickupId === s.id}
                       onSelect={() => {
-                        setPickupId(s.id)
+                        setPickup(s.id)
                         onNext()
                       }}
                     />
@@ -345,7 +346,7 @@ export function DeliveryStep({
       <StorePickerSheet
         open={sheetOpen}
         onSelect={(id) => {
-          setPickupId(id)
+          setPickup(id)
           onNext()
         }}
         onClose={() => setSheetOpen(false)}

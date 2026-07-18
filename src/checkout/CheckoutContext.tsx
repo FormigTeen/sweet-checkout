@@ -55,7 +55,9 @@ interface CheckoutCtx {
   contact: Contact | null
   address: Address | null
   shippingId: string | null
+  pickupId: string | null
   payment: PaymentMethod
+  selectedCardId: string | null
   installments: number
   savedCards: SavedCard[]
   savedAddresses: Address[]
@@ -72,7 +74,9 @@ interface CheckoutCtx {
   setContact: (c: Contact) => void
   setAddress: (a: Address) => void
   setShipping: (id: string) => void
+  setPickup: (id: string | null) => void
   setPayment: (p: PaymentMethod) => void
+  setSelectedCard: (id: string | null) => void
   setInstallments: (n: number) => void
   applyCoupon: (code: string) => boolean
   removeCoupon: () => void
@@ -125,7 +129,9 @@ export function CheckoutProvider({
   const [shippingId, setShipping] = useState<string | null>(
     prefillRest ? 'standard' : null,
   )
+  const [pickupId, setPickup] = useState<string | null>(null)
   const [payment, setPayment] = useState<PaymentMethod>('pix')
+  const [selectedCardId, setSelectedCard] = useState<string | null>(null)
   const [installments, setInstallments] = useState(1)
   const [coupon, setCoupon] = useState<Coupon | null>(null)
   const [taps, setTaps] = useState(0)
@@ -216,7 +222,9 @@ export function CheckoutProvider({
     contact,
     address,
     shippingId,
+    pickupId,
     payment,
+    selectedCardId,
     installments,
     savedCards,
     savedAddresses,
@@ -233,7 +241,9 @@ export function CheckoutProvider({
     setContact,
     setAddress,
     setShipping,
+    setPickup,
     setPayment,
+    setSelectedCard,
     setInstallments,
     applyCoupon,
     removeCoupon,

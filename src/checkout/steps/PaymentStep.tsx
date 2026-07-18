@@ -7,7 +7,7 @@ import { Card, Pix, Plus } from '../components/Icons'
 import { brl } from '../lib/format'
 import { select } from '../lib/feedback'
 
-type Phase = 'method' | 'newcard' | 'installments'
+type Phase = 'method' | 'newcard' | 'savedcvv' | 'installments'
 
 function NewCardForm() {
   return (
@@ -34,6 +34,7 @@ export function PaymentStep({
 }) {
   const {
     setPayment,
+    setSelectedCard,
     setInstallments,
     savedCards,
     hasLeCard,
@@ -43,21 +44,28 @@ export function PaymentStep({
   const [phase, setPhase] = useState<Phase>('method')
   // seleção: 'pix' | 'lecard' | 'new' | `saved:<id>`
   const [sel, setSel] = useState<string>('pix')
+  const [cvv, setCvv] = useState('')
   const [selectedInstallments, setSelectedInstallments] = useState(1)
   const isPix = sel === 'pix'
+  const savedCard = sel.startsWith('saved:')
+    ? savedCards.find((c) => c.id === sel.slice('saved:'.length))
+    : null
+  const cvvReady = cvv.length >= 3
 
   function choose(value: string) {
     setSel(value)
+    setCvv('')
     if (value === 'pix') {
       setPayment('pix')
+      setSelectedCard(null)
       setInstallments(1)
       setSelectedInstallments(1)
     } else {
       setPayment(value === 'lecard' ? 'lecard' : 'card')
+      setSelectedCard(value.startsWith('saved:') ? value.slice('saved:'.length) : null)
     }
   }
 
-  // CTA da tela de método conforme a seleção
   function primary() {
     if (isPix) {
       select()
@@ -65,6 +73,9 @@ export function PaymentStep({
     } else if (sel === 'new') {
       select()
       setPhase('newcard')
+    } else if (sel.startsWith('saved:')) {
+      select()
+      setPhase('savedcvv')
     } else {
       select()
       setPhase('installments')
@@ -75,10 +86,10 @@ export function PaymentStep({
   useEffect(() => {
     registerBack(() => {
       if (phase === 'installments') {
-        setPhase(sel === 'new' ? 'newcard' : 'method')
+        setPhase(sel === 'new' ? 'newcard' : sel.startsWith('saved:') ? 'savedcvv' : 'method')
         return true
       }
-      if (phase === 'newcard') {
+      if (phase === 'newcard' || phase === 'savedcvv') {
         setPhase('method')
         return true
       }
@@ -89,10 +100,13 @@ export function PaymentStep({
 
   // Enter avança conforme a fase
   useEnterAdvance(
-    phase === 'method' || phase === 'newcard' || phase === 'installments',
+    phase === 'method' || phase === 'newcard' || phase === 'savedcvv' || phase === 'installments',
     () => {
       if (phase === 'method') primary()
       else if (phase === 'newcard') {
+        select()
+        setPhase('installments')
+      } else if (phase === 'savedcvv' && cvvReady) {
         select()
         setPhase('installments')
       } else if (phase === 'installments') {
@@ -102,6 +116,51 @@ export function PaymentStep({
       }
     },
   )
+
+  // ---------- Codigo de seguranca do cartao salvo ----------
+  if (phase === 'savedcvv') {
+    return (
+      <>
+        <div className="step-scroll">
+          <h1 className="step-title">Código de segurança</h1>
+          <p className="step-sub">Digite o CVV do cartão para continuar.</p>
+
+          <div className="saved-card-box">
+            <span className="sel-icon">
+              <Card width={22} height={22} />
+            </span>
+            <span className="saved-card-main">
+              <b>{savedCard ? `${savedCard.brand} •••• ${savedCard.last4}` : 'Cartão salvo'}</b>
+              <span>O código fica no verso do cartão.</span>
+            </span>
+          </div>
+
+          <label className="field">
+            <span className="field-label">CVV</span>
+            <input
+              className="field-input big cvv-input"
+              inputMode="numeric"
+              autoComplete="cc-csc"
+              maxLength={4}
+              autoFocus
+              placeholder="000"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            />
+          </label>
+        </div>
+        <BottomBar
+          label="Escolher parcelas"
+          variant="green"
+          disabled={!cvvReady}
+          onNext={() => {
+            select()
+            setPhase('installments')
+          }}
+        />
+      </>
+    )
+  }
 
   // ---------- Novo cartão ----------
   if (phase === 'newcard') {
@@ -188,7 +247,7 @@ export function PaymentStep({
             selected={sel === `saved:${c.id}`}
             onSelect={() => {
               choose(`saved:${c.id}`)
-              setPhase('installments')
+              setPhase('savedcvv')
             }}
           />
         ))}

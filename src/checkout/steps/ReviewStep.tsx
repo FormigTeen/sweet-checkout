@@ -5,7 +5,7 @@ import { BottomBar } from '../components/BottomBar'
 import { PriceTag } from '../components/PriceTag'
 import { QrCode } from '../components/QrCode'
 import { Card, Coin, Copy, Pencil, Pix, Truck, User } from '../components/Icons'
-import { shippingOptions } from '../lib/mockData'
+import { pickupStores, shippingOptions } from '../lib/mockData'
 import { brl } from '../lib/format'
 import { select, tick } from '../lib/feedback'
 import type { StepId } from '../types'
@@ -64,8 +64,11 @@ export function ReviewStep({
     contact,
     address,
     shippingId,
+    pickupId,
     payment,
+    selectedCardId,
     installments,
+    savedCards,
     totals,
     coupon,
     registerBack,
@@ -73,15 +76,28 @@ export function ReviewStep({
   const [phase, setPhase] = useState<PayPhase>('review')
 
   const ship = shippingOptions.find((o) => o.id === shippingId)
+  const pickup = pickupStores.find((s) => s.id === pickupId)
+  const card = selectedCardId
+    ? savedCards.find((c) => c.id === selectedCardId)
+    : null
   const canEditContact = sequence.includes('auth') && !!contact?.email
 
   const paymentLabel = useMemo(() => {
     if (payment === 'pix') return 'PIX com 5% de desconto'
     if (payment === 'lecard') return `Cartão Le biscuit em ${installments}x`
+    const cardName = card ? `${card.brand} •••• ${card.last4}` : 'Novo cartão'
     return installments === 1
-      ? 'Cartão de crédito à vista'
-      : `Cartão de crédito em ${installments}x sem juros`
-  }, [payment, installments])
+      ? `${cardName} à vista`
+      : `${cardName} em ${installments}x sem juros`
+  }, [payment, installments, card])
+
+  const paymentDetail = useMemo(() => {
+    if (payment === 'pix') return null
+    if (payment === 'lecard') return `${installments}x de ${brl(totals.installmentValue)}`
+    return card
+      ? `Final ${card.last4} · ${installments}x de ${brl(totals.installmentValue)}`
+      : `${installments}x de ${brl(totals.installmentValue)}`
+  }, [payment, installments, totals.installmentValue, card])
 
   const payLabel = payment === 'pix' ? 'Pagar com PIX' : 'Confirmar pagamento'
   const payHint =
@@ -194,15 +210,41 @@ export function ReviewStep({
             title="Entrega"
             action={<ReviewEdit label="Editar" onClick={goEdit('delivery')} />}
           >
-            <p className="review-main-text">
-              {address?.street
-                ? `${address.street}, ${address.number}`
-                : 'Endereço não informado'}
-            </p>
-            <p className="review-sub-text">
-              {address?.district && `${address.district} · `}
-              {address?.city}/{address?.state}
-            </p>
+            {shippingId === 'pickup' ? (
+              <>
+                <p className="review-main-text">
+                  {address?.street
+                    ? `${address.street}, ${address.number}`
+                    : 'Endereço de referência não informado'}
+                </p>
+                <p className="review-sub-text">
+                  {address?.district && `${address.district} · `}
+                  {address?.city}/{address?.state}
+                </p>
+                <div className="review-store-box">
+                  <span>Retirar em</span>
+                  <b>{pickup?.name ?? 'Loja de retirada'}</b>
+                  <small>
+                    {pickup
+                      ? `${pickup.neighborhood} · ${pickup.city} · ${pickup.distanceKm} km`
+                      : 'Escolha uma loja para retirada'}
+                  </small>
+                  {pickup && <small>{pickup.ready}</small>}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="review-main-text">
+                  {address?.street
+                    ? `${address.street}, ${address.number}`
+                    : 'Endereço não informado'}
+                </p>
+                <p className="review-sub-text">
+                  {address?.district && `${address.district} · `}
+                  {address?.city}/{address?.state}
+                </p>
+              </>
+            )}
             <div className="review-pill-row">
               <span>{ship?.label ?? 'Frete'}</span>
               <b>{totals.shippingCost === 0 ? 'Grátis' : brl(totals.shippingCost)}</b>
@@ -226,11 +268,7 @@ export function ReviewStep({
             action={<ReviewEdit label="Editar" onClick={goEdit('payment')} />}
           >
             <p className="review-main-text">{paymentLabel}</p>
-            {payment !== 'pix' && (
-              <p className="review-sub-text">
-                {installments}x de {brl(totals.installmentValue)}
-              </p>
-            )}
+            {paymentDetail && <p className="review-sub-text">{paymentDetail}</p>}
           </ReviewSection>
 
           <section className="review-totals">

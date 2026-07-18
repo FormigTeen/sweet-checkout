@@ -59,6 +59,7 @@ export interface CheckoutState {
   contact: Contact | null
   address: Address | null
   shippingId: string | null
+  pickupId: string | null
   payment: PaymentMethod | null
   installments: number
 }
