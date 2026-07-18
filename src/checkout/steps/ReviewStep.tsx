@@ -253,7 +253,6 @@ export function ReviewStep({
                 </p>
                 <p className="review-sub-text">
                   {address?.complement && `${address.complement} · `}
-                  {address?.recipient && `Recebe: ${address.recipient} · `}
                   {address?.district && `${address.district} · `}
                   {address?.city}/{address?.state}
                 </p>
