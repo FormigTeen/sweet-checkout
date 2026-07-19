@@ -169,8 +169,21 @@ export function DeliveryStep({
     const sel = pickupStores.find((s) => s.id === pickupId)
     return sel ? [...base, sel] : base
   }, [pickupId, base])
-  const visibleAddresses = showAllSaved ? savedAddresses : savedAddresses.slice(0, 3)
+  const selectedSavedAddress = useMemo(
+    () => savedAddresses.find((a) => sameAddr(address, a)),
+    [address, savedAddresses],
+  )
+  const otherSavedAddresses = selectedSavedAddress
+    ? savedAddresses.filter((a) => !sameAddr(selectedSavedAddress, a))
+    : []
+  const visibleAddresses = selectedSavedAddress
+    ? showAllSaved ? [selectedSavedAddress, ...otherSavedAddresses] : [selectedSavedAddress]
+    : savedAddresses
   const hiddenAddresses = showAllSaved ? 0 : savedAddresses.length - visibleAddresses.length
+
+  function addressKey(a: (typeof savedAddresses)[number]) {
+    return `${a.cep}-${a.number}-${a.label ?? a.street}`
+  }
 
   function onCep(v: string) {
     const cep = formatCep(v)
@@ -219,31 +232,56 @@ export function DeliveryStep({
         <p className="step-sub">Confirme o endereço e escolha o frete.</p>
 
         {showSaved ? (
-          <div className="saved-addr">
+          <motion.div className="saved-addr" layout>
             <span className="group-label">Endereço de entrega</span>
-            {visibleAddresses.map((a) => (
-              <Selectable
-                key={`${a.label}-${a.cep}`}
-                icon={<MapPin width={20} height={20} />}
-                title={a.label ?? a.street}
-                subtitle={`${a.street}, ${a.number}${a.complement ? ` · ${a.complement}` : ''} · ${a.recipient ?? 'Recebedor não informado'}`}
-                selected={sameAddr(address, a)}
-                onSelect={() => {
-                  setAddress(a)
-                  setComplementInput(a.complement ?? '')
-                  setRecipientInput(a.recipient ?? '')
-                }}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {visibleAddresses.map((a) => (
+                <motion.div
+                  key={addressKey(a)}
+                  layout
+                  initial={{ opacity: 0, height: 0, y: -6 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -6 }}
+                  transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <Selectable
+                    icon={<MapPin width={20} height={20} />}
+                    title={a.label ?? a.street}
+                    subtitle={`${a.street}, ${a.number}${a.complement ? ` · ${a.complement}` : ''} · ${a.recipient ?? 'Recebedor não informado'}`}
+                    selected={sameAddr(address, a)}
+                    onSelect={() => {
+                      setAddress(a)
+                      setComplementInput(a.complement ?? '')
+                      setRecipientInput(a.recipient ?? '')
+                      setShowAllSaved(false)
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {hiddenAddresses > 0 && (
               <button
                 className="see-all"
+                aria-expanded={showAllSaved}
                 onClick={() => {
                   tick()
                   setShowAllSaved(true)
                 }}
               >
                 Ver outros {hiddenAddresses} endereços
+              </button>
+            )}
+            {showAllSaved && selectedSavedAddress && (
+              <button
+                className="see-all"
+                aria-expanded={showAllSaved}
+                onClick={() => {
+                  tick()
+                  setShowAllSaved(false)
+                }}
+              >
+                Ocultar outros endereços
               </button>
             )}
             <button
@@ -267,7 +305,7 @@ export function DeliveryStep({
             >
               Entregar em outro endereço
             </button>
-          </div>
+          </motion.div>
         ) : !hasStreet ? (
           <label className="field">
             <span className="field-label">CEP</span>
