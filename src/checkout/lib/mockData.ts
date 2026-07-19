@@ -16,13 +16,13 @@ export const giftCardsPool: GiftCard[] = [
     id: 'gc-1',
     label: 'Gift Card Le biscuit',
     code: 'LB-2026-85',
-    balance: 8500,
+    balance: 200,
   },
   {
     id: 'gc-2',
     label: 'Vale presente',
     code: 'PRESENTE-40',
-    balance: 4000,
+    balance: 150,
   },
 ]
 

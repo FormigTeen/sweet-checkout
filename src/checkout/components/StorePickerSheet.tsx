@@ -68,7 +68,6 @@ export function StorePickerSheet({
 
             <input
               className="pickup-search"
-              autoFocus
               placeholder="Buscar por bairro ou cidade"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
