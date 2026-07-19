@@ -156,7 +156,7 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
       </div>
 
       <BottomBar
-        label="Continuar para pagamento"
+        label="Continuar"
         variant="green"
         total={totals.total}
         totalHint={hasApplied ? 'Total com benefícios' : 'Total do pedido'}
