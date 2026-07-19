@@ -70,6 +70,7 @@ export function DeliveryStep({
   const numRef = useRef<HTMLInputElement>(null)
   const complementRef = useRef<HTMLInputElement>(null)
   const recipientRef = useRef<HTMLInputElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const pickupRef = useRef<HTMLDivElement>(null)
 
   const hasStreet = !!address?.street
@@ -144,13 +145,17 @@ export function DeliveryStep({
   useEffect(() => {
     if (!isPickup) return
     if (!pickupId && FAVORITE) setPickup(FAVORITE.id)
-    // espera o layout expandir e rola o conteúdo até as lojas ficarem à vista
-    const t = setTimeout(() => {
-      const cont = pickupRef.current?.closest('.step') as HTMLElement | null
-      if (cont) cont.scrollTo({ top: cont.scrollHeight, behavior: 'smooth' })
-    }, 160)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const frame = requestAnimationFrame(() => {
+      const scrollEl = scrollRef.current
+      const pickupEl = pickupRef.current
+      if (!scrollEl || !pickupEl) return
+
+      const scrollRect = scrollEl.getBoundingClientRect()
+      const pickupRect = pickupEl.getBoundingClientRect()
+      const top = scrollEl.scrollTop + pickupRect.top - scrollRect.top - 12
+      scrollEl.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(frame)
   }, [isPickup, pickupId, setPickup])
 
   // Lista fixa (favorita + mais próximas). NÃO reordena ao selecionar —
@@ -227,7 +232,7 @@ export function DeliveryStep({
 
   return (
     <>
-      <div className="step-scroll">
+      <div ref={scrollRef} className="step-scroll">
         <h1 className="step-title">Onde entregamos?</h1>
         <p className="step-sub">Confirme o endereço e escolha o frete.</p>
 
