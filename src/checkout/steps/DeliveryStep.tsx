@@ -283,7 +283,16 @@ export function DeliveryStep({
                   <Selectable
                     icon={<MapPin width={20} height={20} />}
                     title={a.label ?? a.street}
-                    subtitle={`${a.street}, ${a.number}${a.complement ? ` · ${a.complement}` : ''} · ${a.recipient ?? 'Recebedor não informado'}`}
+                    subtitle={
+                      <>
+                        {a.street}, {a.number}
+                        {a.complement ? ` · ${a.complement}` : ''} · {a.district} · {a.city}/{a.state}
+                        <br />
+                        <b className="saved-recipient">
+                          Recebe: {a.recipient ?? 'Não informado'}
+                        </b>
+                      </>
+                    }
                     selected={sameAddr(address, a)}
                     onSelect={() => {
                       setAddress(a)
@@ -381,40 +390,43 @@ export function DeliveryStep({
             <div className="addr-main">
               <span className="addr-title-row">
                 <span className="addr-street">
-                  {address!.street}
-                  <span className="addr-inline-sep">, </span>
-                  {numberDone ? (
+                  {address!.label ? (
                     <motion.span
-                      className="addr-inline-value"
-                      initial={{ opacity: 0, y: 3 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.18 }}
+                      className="addr-inline-value addr-inline-filled"
+                      initial={{ opacity: 0, scaleX: 0.72 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      transition={{ type: 'spring', stiffness: 520, damping: 32 }}
                     >
-                      {address!.number}
+                      {address!.label}
                     </motion.span>
                   ) : (
-                    <span className="addr-inline-skeleton number" aria-hidden />
+                    <span className="addr-inline-skeleton label" aria-hidden />
                   )}
                 </span>
-                {address!.label ? (
+              </span>
+              <span className="addr-rest addr-rest-address">
+                {address!.street}
+                <span className="addr-inline-sep">, </span>
+                {numberDone ? (
                   <motion.span
-                    className="addr-tag"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    className="addr-inline-value addr-inline-filled"
+                    initial={{ opacity: 0, scaleX: 0.72 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 32 }}
                   >
-                    {address!.label}
+                    {address!.number}
                   </motion.span>
                 ) : (
-                  <span className="addr-tag-skeleton" aria-hidden />
+                  <span className="addr-inline-skeleton number" aria-hidden />
                 )}
               </span>
               <span className="addr-rest addr-rest-primary">
                 {complementDone ? (
                   <motion.span
-                    className="addr-inline-value"
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18 }}
+                    className="addr-inline-value addr-inline-filled"
+                    initial={{ opacity: 0, scaleX: 0.72 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 32 }}
                   >
                     {address!.complement || 'Sem complemento'}
                   </motion.span>
@@ -428,10 +440,10 @@ export function DeliveryStep({
                 <span>Recebe: </span>
                 {recipientDone ? (
                   <motion.span
-                    className="addr-inline-value"
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18 }}
+                    className="addr-inline-value addr-inline-filled"
+                    initial={{ opacity: 0, scaleX: 0.72 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 32 }}
                   >
                     {address!.recipient}
                   </motion.span>
