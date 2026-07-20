@@ -168,6 +168,19 @@ export function CartStep({
           para o pagamento
         </p>
 
+        <div className="pix-discount-card">
+          <span className="pix-discount-icon">
+            <Pix width={22} height={22} />
+          </span>
+          <div className="pix-discount-text">
+            <span className="pix-discount-label">Desconto no PIX disponível</span>
+            <span className="pix-discount-desc">
+              Você confirma essa vantagem na etapa de pagamento.
+            </span>
+          </div>
+          <span className="pix-discount-value">5% OFF</span>
+        </div>
+
         <div className="cart-list">
           {items.map((it, i) => {
             const protectedOn = !!it.warrantyId
@@ -234,19 +247,6 @@ export function CartStep({
         </div>
 
         <CouponField />
-
-        <div className="pix-discount-card">
-          <span className="pix-discount-icon">
-            <Pix width={22} height={22} />
-          </span>
-          <div className="pix-discount-text">
-            <span className="pix-discount-label">Desconto no PIX disponível</span>
-            <span className="pix-discount-desc">
-              Você confirma essa vantagem na etapa de pagamento.
-            </span>
-          </div>
-          <span className="pix-discount-value">5% OFF</span>
-        </div>
 
         {totals.cashback > 0 && (
           <div className="cashback-card">
