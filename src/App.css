@@ -1172,6 +1172,27 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 35%, transparent),
     0 14px 30px rgba(24, 112, 66, 0.17);
 }
+.addr-work-icon {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--surface-tint);
+  color: var(--ink-2);
+}
+.addr-work-icon.editing {
+  border: 1px dashed var(--line-2);
+  background: #f7f8fa;
+}
+.addr-work-icon.done {
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--green-dark);
+}
 .addr-main {
   position: relative;
   z-index: 1;
@@ -1268,6 +1289,11 @@
 }
 .addr-recipient-line {
   color: var(--ink-2);
+}
+.addr-recipient-line b {
+  margin-right: 3px;
+  color: var(--ink-2);
+  font-weight: 850;
 }
 .saved-recipient {
   color: var(--ink-2);

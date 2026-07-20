@@ -387,6 +387,19 @@ export function DeliveryStep({
             }}
             transition={{ type: 'spring', stiffness: 330, damping: 28 }}
           >
+            <motion.span
+              className={`addr-work-icon ${addressDetailsDone ? 'done' : 'editing'}`}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+              aria-hidden
+            >
+              {addressDetailsDone ? (
+                <MapPin width={20} height={20} />
+              ) : (
+                <Pencil width={20} height={20} />
+              )}
+            </motion.span>
             <div className="addr-main">
               <span className="addr-title-row">
                 <span className="addr-street">
@@ -437,7 +450,7 @@ export function DeliveryStep({
                 {address!.district} · {address!.city}/{address!.state} · {address!.cep}
               </span>
               <span className="addr-rest addr-recipient-line">
-                <span>Recebe: </span>
+                <b>Recebe: </b>
                 {recipientDone ? (
                   <motion.span
                     className="addr-inline-value addr-inline-filled"
