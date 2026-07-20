@@ -84,6 +84,16 @@ export function DeliveryStep({
     addressDetailsDone ? 'complete' : recipientDone ? 'recipient' : complementDone ? 'complement' : numberDone ? 'number' : 'base'
   const isPickup = shippingId === 'pickup'
   const complete = addressDetailsDone && !!shippingId && (!isPickup || !!pickupId)
+  const addressDetailRows = [
+    { key: 'number', label: 'Número', ready: numberDone, value: address?.number },
+    {
+      key: 'complement',
+      label: 'Complemento',
+      ready: complementDone,
+      value: address?.complement || 'Sem complemento',
+    },
+    { key: 'recipient', label: 'Recebe', ready: recipientDone, value: address?.recipient },
+  ]
   useEnterAdvance(complete, onNext)
 
   useEffect(() => {
@@ -383,7 +393,7 @@ export function DeliveryStep({
                 <span className="addr-street">
                   {address!.street}
                 </span>
-                {address!.label && (
+                {address!.label ? (
                   <motion.span
                     className="addr-tag"
                     initial={{ opacity: 0, y: 4 }}
@@ -391,45 +401,33 @@ export function DeliveryStep({
                   >
                     {address!.label}
                   </motion.span>
+                ) : (
+                  <span className="addr-tag-skeleton" aria-hidden />
                 )}
               </span>
               <motion.span className="addr-rest" layout>
                 {address!.district} · {address!.city}/{address!.state} · {address!.cep}
               </motion.span>
               <div className="addr-detail-list">
-                {numberDone && (
-                  <motion.span
-                    key="number"
-                    className="addr-detail-line"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <b>Número</b>
-                    <span>{address!.number}</span>
-                  </motion.span>
-                )}
-                {complementDone && (
-                  <motion.span
-                    key="complement"
-                    className="addr-detail-line"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <b>Complemento</b>
-                    <span>{address!.complement || 'Sem complemento'}</span>
-                  </motion.span>
-                )}
-                {recipientDone && (
-                  <motion.span
-                    key="recipient"
-                    className="addr-detail-line"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <b>Recebe</b>
-                    <span>{address!.recipient}</span>
-                  </motion.span>
-                )}
+                {addressDetailRows.map((row) => (
+                  <span key={row.key} className="addr-detail-line">
+                    <b>{row.label}</b>
+                    <span className="addr-detail-value">
+                      {row.ready ? (
+                        <motion.span
+                          key={`${row.key}-value`}
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.18 }}
+                        >
+                          {row.value}
+                        </motion.span>
+                      ) : (
+                        <span className="addr-skeleton" aria-hidden />
+                      )}
+                    </span>
+                  </span>
+                ))}
               </div>
             </div>
             <button
