@@ -43,6 +43,15 @@ function audio(): AudioContext | null {
   }
 }
 
+function soundAllowed() {
+  try {
+    const step = new URLSearchParams(window.location.search).get('step')
+    return step === 'payment' || step === 'review' || step === 'done'
+  } catch {
+    return false
+  }
+}
+
 type Wave = OscillatorType
 
 function note(
@@ -51,7 +60,9 @@ function note(
   dur: number,
   gain = 0.06,
   wave: Wave = 'sine',
+  force = false,
 ) {
+  if (!force && !soundAllowed()) return
   const ac = audio()
   if (!ac) return
   const osc = ac.createOscillator()
@@ -98,8 +109,8 @@ export function stepDone() {
 /** Recompensa final — arpejo alegre. */
 export function reward() {
   const seq = [523.25, 659.25, 783.99, 1046.5] // C E G C
-  seq.forEach((f, i) => note(f, i * 0.11, 0.4, 0.07, 'sine'))
-  note(1318.51, 0.5, 0.6, 0.05, 'triangle')
+  seq.forEach((f, i) => note(f, i * 0.11, 0.4, 0.07, 'sine', true))
+  note(1318.51, 0.5, 0.6, 0.05, 'triangle', true)
   vibrate([20, 40, 20, 40, 60])
 }
 
