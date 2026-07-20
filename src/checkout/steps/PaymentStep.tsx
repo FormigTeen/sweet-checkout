@@ -271,6 +271,82 @@ function NewCardForm({
   )
 }
 
+function SavedCvvForm({
+  card,
+  brand,
+  cvv,
+  setCvv,
+  onConfirm,
+}: {
+  card: NewCardState
+  brand: string
+  cvv: string
+  setCvv: (cvv: string) => void
+  onConfirm: () => void
+}) {
+  const cvcRef = useRef<HTMLInputElement>(null)
+  const cvcOk = cvv.length >= 3
+
+  useLayoutEffect(() => {
+    const id = requestAnimationFrame(() => cvcRef.current?.focus())
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  function confirm() {
+    if (!cvcOk) return
+    select()
+    onConfirm()
+  }
+
+  return (
+    <div className="new-card-flow">
+      <CreditCardPreview card={card} focus="cvc" brand={brand} />
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="saved-cvc"
+          className="field"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+        >
+          <span className="field-label">Código de segurança</span>
+          <div className="num-row">
+            <input
+              ref={cvcRef}
+              className="field-input"
+              autoFocus
+              inputMode="numeric"
+              autoComplete="cc-csc"
+              placeholder="000"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  confirm()
+                }
+              }}
+            />
+            <button
+              className="num-confirm"
+              aria-label="Confirmar código de segurança"
+              disabled={!cvcOk}
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={confirm}
+            >
+              <ArrowRight width={22} height={22} />
+            </button>
+          </div>
+          <span className="enter-hint">
+            <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
+          </span>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function PaymentStep({
   onNext,
 }: {
@@ -403,48 +479,13 @@ export function PaymentStep({
           <h1 className="step-title">Código de segurança</h1>
           <p className="step-sub">Digite o CVV que fica no verso do cartão.</p>
 
-          <div className="new-card-flow">
-            <CreditCardPreview
-              card={savedPreview}
-              focus="cvc"
-              brand={savedCard?.brand ?? 'Cartão'}
-            />
-            <span className="field-label">CVV</span>
-            <div className="num-row">
-              <input
-                className="field-input big cvv-input"
-                inputMode="numeric"
-                autoComplete="cc-csc"
-                maxLength={4}
-                autoFocus
-                placeholder="000"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && cvvReady) {
-                    e.preventDefault()
-                    select()
-                    setPhase('installments')
-                  }
-                }}
-              />
-              <button
-                className="num-confirm"
-                aria-label="Confirmar código de segurança"
-                disabled={!cvvReady}
-                onPointerDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  select()
-                  setPhase('installments')
-                }}
-              >
-                <ArrowRight width={22} height={22} />
-              </button>
-            </div>
-            <span className="enter-hint">
-              <Return width={13} height={13} /> Toque na seta ou aperte Enter para continuar
-            </span>
-          </div>
+          <SavedCvvForm
+            card={savedPreview}
+            brand={savedCard?.brand ?? 'Cartão'}
+            cvv={cvv}
+            setCvv={setCvv}
+            onConfirm={() => setPhase('installments')}
+          />
         </div>
       </>
     )
