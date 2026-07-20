@@ -1131,8 +1131,8 @@
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 13px;
   margin-top: 18px;
   padding: 15px;
   border-radius: var(--r-md);
@@ -1290,10 +1290,17 @@
 .addr-recipient-line {
   color: var(--ink-2);
 }
+.addr-complement-line {
+  color: var(--ink-2);
+}
 .addr-recipient-line b {
   margin-right: 3px;
   color: var(--ink-2);
   font-weight: 850;
+}
+.saved-complement {
+  color: var(--ink-2);
+  font-weight: 760;
 }
 .saved-recipient {
   color: var(--ink-2);
@@ -1537,8 +1544,96 @@
   font-weight: 950;
   text-align: center;
 }
-.cashback-use-field {
+.cashback-entry {
   margin-top: 14px;
+}
+.cashback-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 2px dashed var(--line-2);
+  background: var(--surface);
+  text-align: left;
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+}
+.cashback-summary:hover,
+.cashback-summary:focus-visible {
+  border-color: var(--green);
+  background: #fbfffd;
+  transform: translateY(-1px);
+}
+.cashback-summary.on {
+  border-style: solid;
+  border-color: var(--green);
+  background: #eef9f2;
+}
+.cashback-summary span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.cashback-summary small {
+  color: var(--ink-3);
+  font-size: 11.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.cashback-summary b {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 950;
+}
+.cashback-summary.on b {
+  color: var(--green-dark);
+}
+.cashback-summary strong {
+  flex: none;
+  color: var(--blue);
+  font-size: 12.5px;
+  font-weight: 950;
+}
+.cashback-inputwrap {
+  display: flex;
+  gap: 8px;
+}
+.cashback-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cashback-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 18%, transparent);
+}
+.cashback-confirm {
+  flex: none;
+  width: 56px;
+  border-radius: var(--r-md);
+  background: var(--green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-green);
+  transition: filter 0.15s, transform 0.15s;
+}
+.cashback-confirm:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 .cashback-use-actions {
   display: grid;

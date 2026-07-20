@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import { useCheckout } from '../CheckoutContext'
 import { BottomBar } from '../components/BottomBar'
 import { Selectable } from '../components/Selectable'
-import { Card, Coin } from '../components/Icons'
+import { ArrowRight, Card, Coin } from '../components/Icons'
 import { brl } from '../lib/format'
 import { select, tick } from '../lib/feedback'
 
@@ -20,7 +20,9 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
   const [cashbackInput, setCashbackInput] = useState(
     cashbackToUse > 0 ? centsToInput(cashbackToUse) : '',
   )
+  const [cashbackEditing, setCashbackEditing] = useState(false)
   const cashbackInputRef = useRef<HTMLInputElement>(null)
+  const cashbackEntryRef = useRef<HTMLDivElement>(null)
 
   const hasCashbackBalance = cashbackBalance > 0
   const hasGiftCards = giftCards.length > 0
@@ -41,7 +43,25 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
   }
 
   function focusCashbackInput() {
-    requestAnimationFrame(() => cashbackInputRef.current?.focus())
+    setCashbackEditing(true)
+  }
+
+  useEffect(() => {
+    if (!cashbackEditing) return
+    const id = requestAnimationFrame(() => cashbackInputRef.current?.focus())
+    return () => cancelAnimationFrame(id)
+  }, [cashbackEditing])
+
+  function closeCashbackIfFocusLeft() {
+    window.setTimeout(() => {
+      if (cashbackEntryRef.current?.contains(document.activeElement)) return
+      setCashbackEditing(false)
+    }, 0)
+  }
+
+  function confirmCashback() {
+    select()
+    onNext()
   }
 
   return (
@@ -115,41 +135,82 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
                 <strong>{brl(cashbackToUse)} em uso</strong>
               )}
             </div>
-            <label className="field cashback-use-field">
-              <span className="field-label">Quanto deseja usar?</span>
-              <input
-                ref={cashbackInputRef}
-                className="field-input big"
-                inputMode="numeric"
-                placeholder="R$ 0,00"
-                value={cashbackInput}
-                onChange={(e) => onCashback(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter') return
-                  e.preventDefault()
-                  select()
-                  onNext()
-                }}
-              />
-            </label>
-            <div className="cashback-use-actions">
-              <button
-                onClick={() => {
-                  onCashback(centsToInput(cashbackBalance))
-                  focusCashbackInput()
-                }}
-              >
-                Usar tudo
-              </button>
-              <button
-                onClick={() => {
-                  onCashback('')
-                  focusCashbackInput()
-                }}
-                disabled={cashbackToUse === 0}
-              >
-                Limpar
-              </button>
+            <div
+              className="cashback-entry"
+              ref={cashbackEntryRef}
+              onBlur={closeCashbackIfFocusLeft}
+            >
+              <AnimatePresence initial={false}>
+                {cashbackEditing ? (
+                  <motion.div
+                    key="cashback-input"
+                    className="cashback-inputwrap"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    <input
+                      ref={cashbackInputRef}
+                      className="cashback-input"
+                      inputMode="numeric"
+                      placeholder="R$ 0,00"
+                      value={cashbackInput}
+                      onChange={(e) => onCashback(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return
+                        e.preventDefault()
+                        confirmCashback()
+                      }}
+                    />
+                    <button
+                      className="cashback-confirm"
+                      aria-label="Continuar com cashback"
+                      onPointerDown={(e) => e.preventDefault()}
+                      onClick={confirmCashback}
+                    >
+                      <ArrowRight width={21} height={21} />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="cashback-summary"
+                    type="button"
+                    className={`cashback-summary ${cashbackToUse > 0 ? 'on' : ''}`}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    onClick={() => {
+                      tick()
+                      focusCashbackInput()
+                    }}
+                  >
+                    <span>
+                      <small>Cashback no pedido</small>
+                      <b>{cashbackToUse > 0 ? brl(cashbackToUse) : 'Toque para usar'}</b>
+                    </span>
+                    <strong>{cashbackToUse > 0 ? 'Editar' : 'Aplicar'}</strong>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              <div className="cashback-use-actions">
+                <button
+                  onClick={() => {
+                    onCashback(centsToInput(cashbackBalance))
+                    focusCashbackInput()
+                  }}
+                >
+                  Usar tudo
+                </button>
+                <button
+                  onClick={() => {
+                    onCashback('')
+                    focusCashbackInput()
+                  }}
+                  disabled={cashbackToUse === 0}
+                >
+                  Limpar
+                </button>
+              </div>
             </div>
           </section>
         )}

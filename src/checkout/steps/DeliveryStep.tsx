@@ -285,8 +285,11 @@ export function DeliveryStep({
                     title={a.label ?? a.street}
                     subtitle={
                       <>
-                        {a.street}, {a.number}
-                        {a.complement ? ` · ${a.complement}` : ''} · {a.district} · {a.city}/{a.state}
+                        {a.street}, {a.number} · {a.district} · {a.city}/{a.state}
+                        <br />
+                        <span className="saved-complement">
+                          {a.complement || 'Sem complemento'}
+                        </span>
                         <br />
                         <b className="saved-recipient">
                           Recebe: {a.recipient ?? 'Não informado'}
@@ -432,8 +435,10 @@ export function DeliveryStep({
                 ) : (
                   <span className="addr-inline-skeleton number" aria-hidden />
                 )}
+                <span className="addr-inline-sep"> · </span>
+                {address!.district} · {address!.city}/{address!.state} · {address!.cep}
               </span>
-              <span className="addr-rest addr-rest-primary">
+              <span className="addr-rest addr-complement-line">
                 {complementDone ? (
                   <motion.span
                     className="addr-inline-value addr-inline-filled"
@@ -446,8 +451,6 @@ export function DeliveryStep({
                 ) : (
                   <span className="addr-inline-skeleton complement" aria-hidden />
                 )}
-                <span className="addr-inline-sep"> · </span>
-                {address!.district} · {address!.city}/{address!.state} · {address!.cep}
               </span>
               <span className="addr-rest addr-recipient-line">
                 <b>Recebe: </b>
