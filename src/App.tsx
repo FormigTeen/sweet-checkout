@@ -21,12 +21,12 @@ import type { Mode, StepId } from './checkout/types'
 const SIM_STORAGE_KEY = 'lb.sim.config'
 const DEFAULT_CASHBACK_BALANCE = 2500
 const DEFAULT_SIM: SimConfig = {
-  products: 1,
-  cards: 0,
-  addresses: 0,
+  products: 2,
+  cards: 1,
+  addresses: 1,
   profileComplete: true,
   giftCardsEnabled: false,
-  hasCashbackBalance: true,
+  hasCashbackBalance: false,
   cashbackBalance: DEFAULT_CASHBACK_BALANCE,
 }
 
@@ -76,6 +76,10 @@ export default function App() {
 
   const { step, mode, auth } = params
   const isDone = step === 'done'
+
+  useEffect(() => {
+    saveSimConfig(sim)
+  }, [sim])
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search)
@@ -172,7 +176,7 @@ export default function App() {
   return (
     <div className="app">
       <CheckoutProvider
-        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${sim.giftCardsEnabled}-${sim.hasCashbackBalance}-${runId}`}
+        key={`${mode}-${auth}-${sim.products}-${sim.cards}-${sim.addresses}-${sim.profileComplete}-${sim.giftCardsEnabled}-${sim.hasCashbackBalance}-${sim.cashbackBalance}-${runId}`}
         mode={mode}
         auth={auth}
         sim={{

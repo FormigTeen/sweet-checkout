@@ -7,14 +7,38 @@ export interface CheckoutParams {
   auth: 0 | 1
 }
 
-const DEFAULTS: CheckoutParams = { step: 'cart', mode: 'simple', auth: 0 }
+const CONFIG_STORAGE_KEY = 'lb.checkout.config'
+const DEFAULTS: CheckoutParams = { step: 'cart', mode: 'complete', auth: 1 }
+
+function loadStoredConfig(): Pick<CheckoutParams, 'mode' | 'auth'> {
+  try {
+    const raw = localStorage.getItem(CONFIG_STORAGE_KEY)
+    if (!raw) return { mode: DEFAULTS.mode, auth: DEFAULTS.auth }
+    const parsed = JSON.parse(raw) as Partial<Pick<CheckoutParams, 'mode' | 'auth'>>
+    return {
+      mode: parsed.mode === 'simple' ? 'simple' : 'complete',
+      auth: parsed.auth === 0 ? 0 : 1,
+    }
+  } catch {
+    return { mode: DEFAULTS.mode, auth: DEFAULTS.auth }
+  }
+}
+
+function saveStoredConfig(p: Pick<CheckoutParams, 'mode' | 'auth'>) {
+  try {
+    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(p))
+  } catch {
+    // A demo continua funcional mesmo quando o storage do navegador falha.
+  }
+}
 
 function readParams(): CheckoutParams {
   const q = new URLSearchParams(window.location.search)
+  const stored = loadStoredConfig()
   const step = (q.get('step') as StepId) || DEFAULTS.step
-  const mode = (q.get('mode') as Mode) || DEFAULTS.mode
+  const mode = (q.get('mode') as Mode) || stored.mode
   const authRaw = q.get('auth')
-  const auth = authRaw === '1' ? 1 : authRaw === '0' ? 0 : DEFAULTS.auth
+  const auth = authRaw === '1' ? 1 : authRaw === '0' ? 0 : stored.auth
   const valid: StepId[] = ['cart', 'auth', 'profile', 'delivery', 'benefits', 'payment', 'review', 'done']
   return {
     step: valid.includes(step) ? step : 'cart',
@@ -24,6 +48,7 @@ function readParams(): CheckoutParams {
 }
 
 function writeUrl(p: CheckoutParams, replace = false) {
+  saveStoredConfig({ mode: p.mode, auth: p.auth })
   const q = new URLSearchParams(window.location.search)
   q.set('step', p.step)
   q.set('mode', p.mode)
