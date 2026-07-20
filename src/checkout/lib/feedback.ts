@@ -43,15 +43,6 @@ function audio(): AudioContext | null {
   }
 }
 
-function soundAllowed() {
-  try {
-    const step = new URLSearchParams(window.location.search).get('step')
-    return step === 'payment' || step === 'review' || step === 'done'
-  } catch {
-    return false
-  }
-}
-
 type Wave = OscillatorType
 
 function note(
@@ -62,7 +53,7 @@ function note(
   wave: Wave = 'sine',
   force = false,
 ) {
-  if (!force && !soundAllowed()) return
+  if (!force) return
   const ac = audio()
   if (!ac) return
   const osc = ac.createOscillator()
@@ -88,22 +79,24 @@ function vibrate(pattern: number | number[]) {
 
 /** Toque leve — seleção / navegação. */
 export function tick() {
-  note(660, 0, 0.08, 0.04, 'triangle')
   vibrate(8)
 }
 
 /** Confirmação de item / seleção que avança. */
 export function select() {
-  note(587.33, 0, 0.09, 0.05, 'triangle')
-  note(880, 0.05, 0.12, 0.05, 'sine')
   vibrate(12)
 }
 
 /** Etapa concluída — dois tons ascendentes. */
 export function stepDone() {
-  note(659.25, 0, 0.12, 0.06, 'sine') // E5
-  note(987.77, 0.09, 0.18, 0.06, 'sine') // B5
   vibrate([14, 30, 10])
+}
+
+/** Confirmação de pagamento — som reservado para o momento de recompensa. */
+export function paymentConfirm() {
+  note(587.33, 0, 0.09, 0.05, 'triangle', true)
+  note(880, 0.05, 0.12, 0.05, 'sine', true)
+  vibrate([14, 24, 14])
 }
 
 /** Recompensa final — arpejo alegre. */
@@ -116,14 +109,10 @@ export function reward() {
 
 /** Produto protegido — selo de garantia (acorde caloroso). */
 export function protect() {
-  note(523.25, 0, 0.12, 0.05, 'sine') // C5
-  note(783.99, 0.06, 0.16, 0.055, 'sine') // G5
-  note(1046.5, 0.12, 0.2, 0.045, 'triangle') // C6
   vibrate([12, 24, 12])
 }
 
 /** Aviso suave — erro de validação. */
 export function warn() {
-  note(220, 0, 0.16, 0.05, 'sawtooth')
   vibrate([30, 20, 30])
 }

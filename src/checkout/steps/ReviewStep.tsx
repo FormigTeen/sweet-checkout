@@ -7,7 +7,7 @@ import { QrCode } from '../components/QrCode'
 import { Card, Coin, Copy, Pencil, Pix, Truck } from '../components/Icons'
 import { pickupStores, shippingOptions } from '../lib/mockData'
 import { brl } from '../lib/format'
-import { select, tick } from '../lib/feedback'
+import { paymentConfirm, tick } from '../lib/feedback'
 import type { StepId } from '../types'
 
 type PayPhase = 'review' | 'pix' | 'processing'
@@ -117,7 +117,7 @@ export function ReviewStep({
   }
 
   function pay() {
-    select()
+    paymentConfirm()
     setPhase(payment === 'pix' ? 'pix' : 'processing')
   }
 
