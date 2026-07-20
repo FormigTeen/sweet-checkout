@@ -59,6 +59,7 @@ export function DeliveryStep({
   const [numberInput, setNumberInput] = useState(address?.number ?? '')
   const [complementInput, setComplementInput] = useState(address?.complement ?? '')
   const [recipientInput, setRecipientInput] = useState(address?.recipient ?? '')
+  const [labelInput, setLabelInput] = useState(address?.label ?? '')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [entering, setEntering] = useState(false)
   const [showAllSaved, setShowAllSaved] = useState(false)
@@ -70,15 +71,17 @@ export function DeliveryStep({
   const numRef = useRef<HTMLInputElement>(null)
   const complementRef = useRef<HTMLInputElement>(null)
   const recipientRef = useRef<HTMLInputElement>(null)
+  const labelRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const pickupRef = useRef<HTMLDivElement>(null)
 
   const hasStreet = !!address?.street
   const numberDone = !!address?.number
   const complementDone = numberDone && typeof address?.complement === 'string'
-  const addressDetailsDone = numberDone && !!address?.recipient
+  const recipientDone = complementDone && !!address?.recipient
+  const addressDetailsDone = recipientDone && !!address?.label
   const addressProgress =
-    addressDetailsDone ? 'complete' : complementDone ? 'complement' : numberDone ? 'number' : 'base'
+    addressDetailsDone ? 'complete' : recipientDone ? 'recipient' : complementDone ? 'complement' : numberDone ? 'number' : 'base'
   const isPickup = shippingId === 'pickup'
   const complete = addressDetailsDone && !!shippingId && (!isPickup || !!pickupId)
   useEnterAdvance(complete, onNext)
@@ -89,10 +92,11 @@ export function DeliveryStep({
       if (!hasStreet) cepRef.current?.focus()
       else if (!numberDone) numRef.current?.focus()
       else if (!complementDone) complementRef.current?.focus()
-      else if (!addressDetailsDone) recipientRef.current?.focus()
+      else if (!recipientDone) recipientRef.current?.focus()
+      else if (!addressDetailsDone) labelRef.current?.focus()
     }, 60)
     return () => clearTimeout(t)
-  }, [hasStreet, numberDone, complementDone, addressDetailsDone, showSaved])
+  }, [hasStreet, numberDone, complementDone, recipientDone, addressDetailsDone, showSaved])
 
   // voltar contextual: sair do "outro endereço" volta aos endereços salvos
   useEffect(() => {
@@ -104,16 +108,30 @@ export function DeliveryStep({
       if (addressDetailsDone && address) {
         setShipping('')
         setPickup(null)
-        setAddress({ ...address, recipient: '' })
+        setAddress({ ...address, label: '' })
+        setLabelInput('')
+        return true
+      }
+      if (recipientDone && address) {
+        setShipping('')
+        setPickup(null)
+        setAddress({ ...address, recipient: '', label: '' })
+        setRecipientInput('')
+        setLabelInput('')
         return true
       }
       if (complementDone && address) {
-        setAddress({ ...address, complement: undefined, recipient: '' })
+        setAddress({ ...address, complement: undefined, recipient: '', label: '' })
+        setRecipientInput('')
+        setLabelInput('')
         return true
       }
       if (numberDone && address) {
-        setAddress({ ...address, number: '', complement: '', recipient: '' })
+        setAddress({ ...address, number: '', complement: '', recipient: '', label: '' })
         setNumberInput('')
+        setComplementInput('')
+        setRecipientInput('')
+        setLabelInput('')
         return true
       }
       if (entering && savedAddresses.length > 0) {
@@ -122,6 +140,7 @@ export function DeliveryStep({
         setNumberInput('')
         setComplementInput('')
         setRecipientInput('')
+        setLabelInput('')
         setAddress(savedAddresses[0])
         return true
       }
@@ -136,6 +155,7 @@ export function DeliveryStep({
     setAddress,
     address,
     addressDetailsDone,
+    recipientDone,
     complementDone,
     numberDone,
     setShipping,
@@ -198,15 +218,16 @@ export function DeliveryStep({
       setAddress(found)
       setComplementInput('')
       setRecipientInput('')
+      setLabelInput('')
     } else {
-      setAddress({ cep, street: '', number: '', complement: '', recipient: '', district: '', city: '', state: '' })
+      setAddress({ cep, street: '', number: '', complement: '', recipient: '', label: '', district: '', city: '', state: '' })
     }
   }
 
   function confirmNumber() {
     if (!numberInput.trim() || !address) return
     select()
-    setAddress({ ...address, number: numberInput.trim(), complement: undefined, recipient: '' })
+    setAddress({ ...address, number: numberInput.trim(), complement: undefined, recipient: '', label: '' })
   }
 
   function confirmComplement() {
@@ -221,13 +242,22 @@ export function DeliveryStep({
   function confirmRecipient() {
     if (!address || !recipientInput.trim()) return
     select()
-    setAddress({ ...address, recipient: recipientInput.trim() })
+    setAddress({ ...address, recipient: recipientInput.trim(), label: '' })
+  }
+
+  function confirmLabel() {
+    if (!address || !labelInput.trim()) return
+    select()
+    setAddress({ ...address, label: labelInput.trim() })
   }
 
   function editAddress() {
     tick()
     setNumberInput('')
-    setAddress({ cep: '', street: '', number: '', complement: '', recipient: '', district: '', city: '', state: '' })
+    setComplementInput('')
+    setRecipientInput('')
+    setLabelInput('')
+    setAddress({ cep: '', street: '', number: '', complement: '', recipient: '', label: '', district: '', city: '', state: '' })
   }
 
   return (
@@ -259,6 +289,7 @@ export function DeliveryStep({
                       setAddress(a)
                       setComplementInput(a.complement ?? '')
                       setRecipientInput(a.recipient ?? '')
+                      setLabelInput(a.label ?? '')
                       setShowAllSaved(false)
                     }}
                   />
@@ -294,6 +325,9 @@ export function DeliveryStep({
               onClick={() => {
                 tick()
                 setNumberInput('')
+                setComplementInput('')
+                setRecipientInput('')
+                setLabelInput('')
                 setShowAllSaved(false)
                 setEntering(true)
                 setAddress({
@@ -302,6 +336,7 @@ export function DeliveryStep({
                   number: '',
                   complement: '',
                   recipient: '',
+                  label: '',
                   district: '',
                   city: '',
                   state: '',
@@ -340,53 +375,62 @@ export function DeliveryStep({
             animate={{
               opacity: 1,
               y: 0,
-              scale: addressProgress === 'base' ? 1 : 1.01,
             }}
             transition={{ type: 'spring', stiffness: 330, damping: 28 }}
           >
             <div className="addr-main">
-              <span className="addr-street">
-                {address!.street}
+              <span className="addr-title-row">
+                <span className="addr-street">
+                  {address!.street}
+                </span>
+                {address!.label && (
+                  <motion.span
+                    className="addr-tag"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {address!.label}
+                  </motion.span>
+                )}
               </span>
               <motion.span className="addr-rest" layout>
                 {address!.district} · {address!.city}/{address!.state} · {address!.cep}
               </motion.span>
-              <AnimatePresence>
-                {address!.number && (
+              <div className="addr-detail-list">
+                {numberDone && (
                   <motion.span
                     key="number"
-                    className="addr-detail-pill"
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4 }}
+                    className="addr-detail-line"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    Número {address!.number}
+                    <b>Número</b>
+                    <span>{address!.number}</span>
                   </motion.span>
                 )}
-                {typeof address!.complement === 'string' && (
+                {complementDone && (
                   <motion.span
                     key="complement"
-                    className="addr-detail-pill"
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4 }}
+                    className="addr-detail-line"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    {address!.complement || 'Sem complemento'}
+                    <b>Complemento</b>
+                    <span>{address!.complement || 'Sem complemento'}</span>
                   </motion.span>
                 )}
-                {address!.recipient && (
+                {recipientDone && (
                   <motion.span
                     key="recipient"
-                    className="addr-detail-pill addr-detail-strong"
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4 }}
+                    className="addr-detail-line"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    Recebe: {address!.recipient}
+                    <b>Recebe</b>
+                    <span>{address!.recipient}</span>
                   </motion.span>
                 )}
-              </AnimatePresence>
-              {address!.label && <span className="addr-tag">{address!.label}</span>}
+              </div>
             </div>
             <button
               className="icon-btn subtle"
@@ -472,7 +516,7 @@ export function DeliveryStep({
           </motion.div>
         )}
 
-        {complementDone && !addressDetailsDone && (
+        {complementDone && !recipientDone && (
           <motion.div className="address-extra" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="field">
               <span className="field-label">Quem vai receber</span>
@@ -498,6 +542,44 @@ export function DeliveryStep({
                   onClick={() => {
                     tap()
                     confirmRecipient()
+                  }}
+                >
+                  <ArrowRight width={22} height={22} />
+                </button>
+              </div>
+              <span className="enter-hint">
+                <Return width={13} height={13} /> Toque na seta ou pressione Enter
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        {recipientDone && !addressDetailsDone && (
+          <motion.div className="address-extra" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="field">
+              <span className="field-label">Apelido do endereço</span>
+              <div className="num-row">
+                <input
+                  ref={labelRef}
+                  className="field-input"
+                  placeholder="Casa, trabalho, mãe..."
+                  value={labelInput}
+                  onChange={(e) => setLabelInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      confirmLabel()
+                    }
+                  }}
+                />
+                <button
+                  className="num-confirm"
+                  aria-label="Confirmar apelido do endereço"
+                  disabled={!labelInput.trim()}
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    tap()
+                    confirmLabel()
                   }}
                 >
                   <ArrowRight width={22} height={22} />

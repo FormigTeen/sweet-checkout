@@ -1158,6 +1158,7 @@
 }
 .addr-card-number,
 .addr-card-complement,
+.addr-card-recipient,
 .addr-card-complete {
   border-color: var(--green);
   background: #f1fbf5;
@@ -1166,6 +1167,7 @@
 }
 .addr-card-number::before,
 .addr-card-complement::before,
+.addr-card-recipient::before,
 .addr-card-complete::before {
   opacity: 1;
   transform: translateX(0);
@@ -1179,49 +1181,74 @@
   position: relative;
   z-index: 1;
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
+}
+.addr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 .addr-street {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 15px;
   font-weight: 800;
   color: var(--ink);
+  white-space: nowrap;
 }
 .addr-rest {
   font-size: 12.5px;
   color: var(--ink-2);
 }
-.addr-detail-pill {
-  align-self: flex-start;
-  display: inline-flex;
+.addr-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line-2) 72%, transparent);
+}
+.addr-detail-line {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
   align-items: center;
-  max-width: 100%;
-  min-height: 25px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px solid #b7dcc6;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--green-dark);
+  gap: 8px;
+  min-height: 22px;
   font-size: 12px;
-  font-weight: 850;
   line-height: 1.2;
+}
+.addr-detail-line b {
+  color: var(--ink-3);
+  font-weight: 850;
+}
+.addr-detail-line span {
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 760;
   overflow-wrap: anywhere;
 }
-.addr-detail-strong {
-  background: #fff;
-  border-color: var(--green);
-  color: var(--ink);
-}
 .addr-tag {
-  align-self: flex-start;
-  margin-top: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--green-dark);
-  background: #fff;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  max-width: 42%;
+  min-height: 20px;
+  padding: 3px 7px;
   border-radius: 6px;
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- Auth ---------- */
