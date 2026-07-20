@@ -131,9 +131,6 @@ export function BenefitsStep({ onNext }: { onNext: () => void }) {
                 <small>Saldo para esta compra</small>
                 <b>{brl(cashbackBalance)}</b>
               </span>
-              {cashbackToUse > 0 && (
-                <strong>{brl(cashbackToUse)} em uso</strong>
-              )}
             </div>
             <div
               className="cashback-entry"

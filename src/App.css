@@ -1293,6 +1293,9 @@
 .addr-complement-line {
   color: var(--ink-2);
 }
+.addr-complement-value {
+  font-weight: 400;
+}
 .addr-recipient-line b {
   margin-right: 3px;
   color: var(--ink-2);
@@ -1300,7 +1303,7 @@
 }
 .saved-complement {
   color: var(--ink-2);
-  font-weight: 760;
+  font-weight: 400;
 }
 .saved-recipient {
   color: var(--ink-2);

@@ -441,7 +441,7 @@ export function DeliveryStep({
               <span className="addr-rest addr-complement-line">
                 {complementDone ? (
                   <motion.span
-                    className="addr-inline-value addr-inline-filled"
+                    className="addr-inline-value addr-inline-filled addr-complement-value"
                     initial={{ opacity: 0, scaleX: 0.72 }}
                     animate={{ opacity: 1, scaleX: 1 }}
                     transition={{ type: 'spring', stiffness: 520, damping: 32 }}
