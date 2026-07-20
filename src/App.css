@@ -1179,7 +1179,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 .addr-title-row {
   display: flex;
@@ -1197,35 +1197,15 @@
   white-space: nowrap;
 }
 .addr-rest {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12.5px;
   color: var(--ink-2);
-}
-.addr-detail-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid color-mix(in srgb, var(--line-2) 72%, transparent);
-}
-.addr-detail-line {
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  min-height: 22px;
-  font-size: 12px;
-  line-height: 1.2;
-}
-.addr-detail-line b {
-  color: var(--ink-3);
-  font-weight: 850;
-}
-.addr-detail-line > .addr-detail-value {
-  min-width: 0;
-  color: var(--ink);
-  font-weight: 760;
-  overflow-wrap: anywhere;
 }
 .addr-tag {
   display: inline-flex;
@@ -1254,34 +1234,40 @@
   background-size: 200% 100%;
   animation: soft-skeleton 1.5s ease-in-out infinite;
 }
-.addr-detail-value {
-  position: relative;
-  display: flex;
-  align-items: center;
+.addr-inline-value {
+  display: inline;
   min-width: 0;
-  min-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.addr-detail-value > span:not(.addr-skeleton) {
-  display: block;
-  min-width: 0;
+.addr-street .addr-inline-value {
   color: var(--ink);
-  font-weight: 760;
-  overflow-wrap: anywhere;
+  font-weight: 800;
 }
-.addr-skeleton {
-  display: block;
-  width: min(100%, 138px);
-  height: 10px;
+.addr-inline-sep {
+  color: currentColor;
+}
+.addr-inline-skeleton {
+  display: inline-block;
+  flex: none;
+  height: 0.78em;
+  vertical-align: -0.08em;
   border-radius: 999px;
   background: linear-gradient(90deg, #eef1f4 0%, #dfe4e8 48%, #eef1f4 100%);
   background-size: 200% 100%;
   animation: soft-skeleton 1.5s ease-in-out infinite;
 }
-.addr-detail-line:nth-child(2) .addr-skeleton {
-  width: min(100%, 168px);
+.addr-inline-skeleton.number {
+  width: 34px;
 }
-.addr-detail-line:nth-child(3) .addr-skeleton {
-  width: min(100%, 124px);
+.addr-inline-skeleton.complement {
+  width: 96px;
+}
+.addr-inline-skeleton.recipient {
+  width: 118px;
+}
+.addr-recipient-line {
+  color: var(--ink-2);
 }
 @keyframes soft-skeleton {
   0% {

@@ -84,16 +84,6 @@ export function DeliveryStep({
     addressDetailsDone ? 'complete' : recipientDone ? 'recipient' : complementDone ? 'complement' : numberDone ? 'number' : 'base'
   const isPickup = shippingId === 'pickup'
   const complete = addressDetailsDone && !!shippingId && (!isPickup || !!pickupId)
-  const addressDetailRows = [
-    { key: 'number', label: 'Número', ready: numberDone, value: address?.number },
-    {
-      key: 'complement',
-      label: 'Complemento',
-      ready: complementDone,
-      value: address?.complement || 'Sem complemento',
-    },
-    { key: 'recipient', label: 'Recebe', ready: recipientDone, value: address?.recipient },
-  ]
   useEnterAdvance(complete, onNext)
 
   useEffect(() => {
@@ -392,6 +382,19 @@ export function DeliveryStep({
               <span className="addr-title-row">
                 <span className="addr-street">
                   {address!.street}
+                  <span className="addr-inline-sep">, </span>
+                  {numberDone ? (
+                    <motion.span
+                      className="addr-inline-value"
+                      initial={{ opacity: 0, y: 3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      {address!.number}
+                    </motion.span>
+                  ) : (
+                    <span className="addr-inline-skeleton number" aria-hidden />
+                  )}
                 </span>
                 {address!.label ? (
                   <motion.span
@@ -405,30 +408,37 @@ export function DeliveryStep({
                   <span className="addr-tag-skeleton" aria-hidden />
                 )}
               </span>
-              <motion.span className="addr-rest" layout>
+              <span className="addr-rest addr-rest-primary">
+                {complementDone ? (
+                  <motion.span
+                    className="addr-inline-value"
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {address!.complement || 'Sem complemento'}
+                  </motion.span>
+                ) : (
+                  <span className="addr-inline-skeleton complement" aria-hidden />
+                )}
+                <span className="addr-inline-sep"> · </span>
                 {address!.district} · {address!.city}/{address!.state} · {address!.cep}
-              </motion.span>
-              <div className="addr-detail-list">
-                {addressDetailRows.map((row) => (
-                  <span key={row.key} className="addr-detail-line">
-                    <b>{row.label}</b>
-                    <span className="addr-detail-value">
-                      {row.ready ? (
-                        <motion.span
-                          key={`${row.key}-value`}
-                          initial={{ opacity: 0, x: -6 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.18 }}
-                        >
-                          {row.value}
-                        </motion.span>
-                      ) : (
-                        <span className="addr-skeleton" aria-hidden />
-                      )}
-                    </span>
-                  </span>
-                ))}
-              </div>
+              </span>
+              <span className="addr-rest addr-recipient-line">
+                <span>Recebe: </span>
+                {recipientDone ? (
+                  <motion.span
+                    className="addr-inline-value"
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {address!.recipient}
+                  </motion.span>
+                ) : (
+                  <span className="addr-inline-skeleton recipient" aria-hidden />
+                )}
+              </span>
             </div>
             <button
               className="icon-btn subtle"
